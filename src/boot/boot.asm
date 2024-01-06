@@ -1,8 +1,8 @@
-org 0x7C00
+org 0x7C00                                          ; Bootsector start
 bits 16
 
 ; FAT 12 Header
-jmp short main
+jmp short init
 nop
 
 bdb_oem:                    db 'MSWIN4.1'           ; 8 bytes
@@ -27,9 +27,11 @@ ebr_volume_id:              db 03h, 17h, 20h, 04h   ; serial number, value doesn
 ebr_volume_label:           db 'HTTP OS    '        ; 11 bytes, padded with spaces
 ebr_system_id:              db 'FAT12   '           ; 8 bytes
 
+KERNEL_LOAD_SEGMENT:        equ 0x2000
+KERNEL_LOAD_OFFSET:         equ 0
 
 ; Code
-main:
+init:
     ; Setup data segments
     xor ax, ax                                      ; Set AX to 0
     mov ds, ax
@@ -39,18 +41,158 @@ main:
     mov ss, ax
     mov sp, 0x7C00
 
-    ; Read something from the floppy
+    ; BIOSes may incorrectly start us at 07C0:0000 instead of 0000:7C00
+    push es
+    push word main
+    retf
+
+main:
+    ; BIOS should set DL to drive number
     mov [ebr_drive_number], dl
 
-    mov ax, 1
-    mov cl, 1
-    mov bx, 0x7E00
+    ; Get drive parameters instead of relying on disk data
+    mov si, read_error
+    push es
+    mov ah, 08h
+    int 13h
+    jc error
+    pop es
 
+    and cl, 0x3F                        ; remove top 2 bits
+    xor ch, ch
+    mov [bdb_sectors_per_track], cx     ; sector count
+
+    inc dh
+    mov [bdb_heads], dh                 ; head count
+
+    ; Read FAT root directory
+    ; Compute LBA of root directory = reserved_sectors + fats * sectors_per_fat
+    mov ax, [bdb_sectors_per_fat]                   ; AX = sectors_per_fat
+    mov bl, [bdb_fat_count]
+    xor bh, bh
+    mul bx                                          ; AX *= fats
+    add ax, [bdb_reserved_sectors]                  ; AX = LBA of root directory
+    push ax
+
+    ; Compute size of root directory = (32 * number_of_entries) / bytes_per_sector
+    mov ax, [bdb_dir_entries_count]
+    shl ax, 5                                       ; AX *= 32
+    xor dx, dx                                      ; dx = 0
+    div word [bdb_bytes_per_sector]                 ; number of sectors we need to read
+
+    test dx, dx                                     ; if division remainder != 0, then add 1
+    jz root_dir_after                               ; this means we haev a sector only partially filled with entries
+    inc ax
+
+root_dir_after:
+    ; Read root directory
+    mov cl, al                                      ; number of sectors to read = size of root directory
+    pop ax                                          ; LBA of root directory
+    mov dl, [ebr_drive_number]                      ; DL = drive number (We saved it on line 49)
+    mov bx, buffer                                  ; es:bx = buffer
     call disk_read
 
-halt:
-    cli
-    hlt
+    ; Search for kernel.bin
+    xor bx, bx
+    mov di, buffer
+
+search_kernel:
+    mov si, kernel_file
+    mov cx, 11                                      ; Compare up to 11 characters (8 for filename and 3 for extension)
+    push di
+    repe cmpsb
+    pop di
+    je found_kernel
+
+    ; We didn't find kernel yet
+    add di, 32
+    inc bx
+    cmp bx, [bdb_dir_entries_count]
+    jl search_kernel
+
+    ; We can't find the kernel, time to panic
+    mov si, kernel_error
+    jmp error
+
+found_kernel:
+    ; DI should have address to entry
+    mov ax, [di+26]                                 ; First logical cluster field
+    mov [kernel_cluster], ax
+
+    ; Load FAT from disk into memory
+    mov ax, [bdb_reserved_sectors]
+    mov bx, buffer
+    mov cl, [bdb_sectors_per_fat]
+    mov dl, [ebr_drive_number]
+    call disk_read
+
+    ; Read kernel and process FAT chain
+    mov bx, KERNEL_LOAD_SEGMENT
+    mov es, bx
+    mov bx, KERNEL_LOAD_OFFSET
+
+load_kernel:
+    mov ax, [kernel_cluster]
+
+    add ax, 31                                      ; TODO: Make this not hardcoded
+    
+    mov cl, 1
+    mov dl, [ebr_drive_number]
+    call disk_read
+
+    add bx, [bdb_bytes_per_sector]
+
+    ; Compute location of next cluster
+    mov ax, [kernel_cluster]
+    mov cx, 3
+    mul cx
+    mov cx, 2
+    div cx                                          ; AX = index of entry in FAT, DX = cluster % 2
+
+    mov si, buffer
+    add si, ax
+    mov ax, [ds:si]                                 ; Read entry from FAT table at index AX
+
+    or dx, dx
+    jz load_even
+
+load_odd:
+    shr ax, 4
+    jmp next_cluster
+
+load_even:
+    and ax, 0x0FFF
+
+next_cluster:
+    cmp ax, 0x0FF8                                  ; End of chain
+    jae read_finish
+
+    mov [kernel_cluster], ax
+    jmp load_kernel
+
+read_finish:
+    ; Jump to the kernel!
+    mov dl, [ebr_drive_number]                      ; Boot device in dl
+
+    mov ax, KERNEL_LOAD_SEGMENT
+    mov ds, ax
+    mov es, ax
+
+    jmp KERNEL_LOAD_SEGMENT:KERNEL_LOAD_OFFSET
+
+; Prints a error to the screen, and restarts on key press
+; Parameters:
+;   - SI: Message pointer
+error:
+    ; Print messages
+    call print
+    mov si, press_key
+    call print
+
+    ; Wait for key press
+    mov ah, 00h
+    int 16h                                         ; BIOS interrupt
+    jmp 0FFFFh:0h                                   ; Restart the computer
 
 ; Prints a message to the screen
 ; Parameters:
@@ -140,8 +282,7 @@ disk_read:
 
     .failure:
         mov si, read_error
-        call print
-        jmp halt
+        jmp error
 
     .done:
         popa
@@ -161,13 +302,19 @@ disk_reset:
 
     .failure:
         mov si, read_error
-        call print
-        jmp halt
+        jmp error
 
 ; Messages
 %define ENDL 0x0D, 0x0A, 0x00
-read_error:  db 'Read failure', ENDL
-disk_error:  db 'Disk reset failure', ENDL
+read_error:     db 'Read failure', ENDL
+disk_error:     db 'Disk reset failure', ENDL
+kernel_error:   db 'Kernel not found', ENDL
+press_key:      db 'Press any key to reboot', ENDL
+
+kernel_cluster: dw 0
+kernel_file:    db 'KERNEL  BIN'
 
 times 510-($-$$) db 0
     dw 0xAA55  ; Boot signature
+
+buffer:
