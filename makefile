@@ -1,7 +1,8 @@
-include config.mk
+include src/config.mk
 
 BOOTDIR=	src/boot
 KERNELDIR=	src/kernel
+STATICDIR=	static
 
 BOOT=		$(BOOTDIR)/boot.bin
 KERNEL=		$(KERNELDIR)/kernel.bin
@@ -18,7 +19,7 @@ run: $(FLPIMG)
 	$(QEMU) $(FLPIMG)
 
 # Floppy image
-$(FLPIMG): $(BOOT) $(KERNEL)
+$(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
 	dd if=/dev/zero of=$(FLPIMG) bs=512 count=2880
 	mkfs.fat -F 12 $(FLPIMG)
 	dd if=$(BOOT) of=$(FLPIMG) conv=notrunc
