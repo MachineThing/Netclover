@@ -1,32 +1,38 @@
-bootdir=	src/boot
-kerneldir=	src/kernel
+include config.mk
 
-boot=		$(bootdir)/boot.bin
-kernel=		$(kerneldir)/kernel.bin
-flpimg=		httpos.img
-.PHONY: all clean
+BOOTDIR=	src/boot
+KERNELDIR=	src/kernel
 
-all: $(flpimg)
+BOOT=		$(BOOTDIR)/boot.bin
+KERNEL=		$(KERNELDIR)/kernel.bin
+FLPIMG=		httpos.img
 
-run: $(flpimg)
-	qemu-system-x86_64 $(flpimg)
+GITIGNORE=	$(shell cat .gitignore | grep -v '^#' | grep -v '^$$')
+DIRFILES=	$(shell find $1 -type f $(foreach pattern,$(GITIGNORE),-not -path '$(pattern)'))
+
+.PHONY: all run clean
+
+all: $(FLPIMG)
+
+run: $(FLPIMG)
+	$(QEMU) $(FLPIMG)
 
 # Floppy image
-$(flpimg): $(boot) $(kernel)
-	dd if=/dev/zero of=$(flpimg) bs=512 count=2880
-	mkfs.fat -F 12 $(flpimg)
-	dd if=$(boot) of=$(flpimg) conv=notrunc
-	truncate -s 1440k $(flpimg)
-	mcopy -i $(flpimg) $(kernel) "::kernel.bin"
+$(FLPIMG): $(BOOT) $(KERNEL)
+	dd if=/dev/zero of=$(FLPIMG) bs=512 count=2880
+	mkfs.fat -F 12 $(FLPIMG)
+	dd if=$(BOOT) of=$(FLPIMG) conv=notrunc
+	truncate -s 1440k $(FLPIMG)
+	mcopy -i $(FLPIMG) $(KERNEL) "::kernel.bin"
 
 # Kernel
-$(kernel): $(kerneldir)
-	make -C $(kerneldir)
+$(KERNEL): $(call DIRFILES $(KERNELDIR))
+	make -C $(KERNELDIR)
 
 # Bootloader
-$(boot): $(bootdir)
-	make -C $(bootdir)
+$(BOOT): $(call DIRFILES $(BOOTDIR))
+	make -C $(BOOTDIR)
 
 # Clean
 clean:
-	rm -r $(boot) $(flpimg)
+	rm -rf $(BOOT) $(KERNEL) $(FLPIMG)
