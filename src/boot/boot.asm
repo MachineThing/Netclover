@@ -51,10 +51,10 @@ main:
     mov [ebr_drive_number], dl
 
     ; Get drive parameters instead of relying on disk data
-    mov si, read_error
     push es
     mov ah, 08h
     int 13h
+    xor al, al                          ; AL = 0
     jc error
     pop es
 
@@ -111,7 +111,7 @@ search_kernel:
     jl search_kernel
 
     ; We can't find the kernel, time to panic
-    mov si, kernel_error
+    mov al, 1
     jmp error
 
 found_kernel:
@@ -180,12 +180,21 @@ read_finish:
 
     jmp KERNEL_LOAD_SEGMENT:KERNEL_LOAD_OFFSET
 
+;;;;;;;;;;;;;
+; Functions ;
+;;;;;;;;;;;;;
+
 ; Prints a error to the screen, and restarts on key press
 ; Parameters:
-;   - SI: Message pointer
+;   - AL: Error number
 error:
     ; Print messages
+    mov si, error_msg
     call print
+    add al, 30h                                     ; ASCII offset
+    mov ah, 0Eh                                     ; Teletype output
+    mov bh, 0
+    int 0x10
     mov si, press_key
     call print
 
@@ -281,7 +290,7 @@ disk_read:
         jnz .retry
 
     .failure:
-        mov si, read_error
+        mov al, 2
         jmp error
 
     .done:
@@ -301,20 +310,18 @@ disk_reset:
     ret
 
     .failure:
-        mov si, read_error
+        mov al, 3
         jmp error
 
 ; Messages
 %define ENDL 0x0D, 0x0A, 0x00
-read_error:     db 'Read failure', ENDL
-disk_error:     db 'Disk reset failure', ENDL
-kernel_error:   db 'Kernel not found', ENDL
-press_key:      db 'Press any key to reboot', ENDL
+error_msg:      db 'Error: ', 0x00
+press_key:      db 0x0D, 0x0A, 'Press any key to reboot', ENDL
 
 kernel_cluster: dw 0
 kernel_file:    db 'KERNEL  BIN'
 
 times 510-($-$$) db 0
-    dw 0xAA55  ; Boot signature
+                dw 0xAA55   ; Boot signature
 
 buffer:

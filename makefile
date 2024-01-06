@@ -15,6 +15,9 @@ DIRFILES=	$(shell find $1 -type f $(foreach pattern,$(GITIGNORE),-not -path '$(p
 
 all: $(FLPIMG)
 
+bochs: $(FLPIMG)
+	bochs -f bochs_config
+
 run: $(FLPIMG)
 	$(QEMU) $(FLPIMG)
 
