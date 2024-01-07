@@ -8,15 +8,12 @@ BOOT=		$(BOOTDIR)/boot.bin
 KERNEL=		$(KERNELDIR)/kernel.bin
 FLPIMG=		httpos.img
 
-GITIGNORE=	$(shell cat .gitignore | grep -v '^#' | grep -v '^$$')
-DIRFILES=	$(shell find $1 -type f $(foreach pattern,$(GITIGNORE),-not -path '$(pattern)'))
-
 .PHONY: all run clean
 
 all: $(FLPIMG)
 
 bochs: $(FLPIMG)
-	bochs -f bochs_config
+	bochs -f bochs_config -q
 
 run: $(FLPIMG)
 	$(QEMU) $(FLPIMG)
@@ -24,7 +21,7 @@ run: $(FLPIMG)
 # Floppy image
 $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
 	dd if=/dev/zero of=$(FLPIMG) bs=512 count=2880
-	mkfs.fat -F 12 $(FLPIMG)
+	mkfs.fat -F 12 -R 4 $(FLPIMG)
 	dd if=$(BOOT) of=$(FLPIMG) conv=notrunc
 	truncate -s 1440k $(FLPIMG)
 	mcopy -i $(FLPIMG) $(KERNEL) "::kernel.bin"
@@ -39,4 +36,4 @@ $(BOOT): $(call DIRFILES $(BOOTDIR))
 
 # Clean
 clean:
-	rm -rf $(BOOT) $(KERNEL) $(FLPIMG)
+	rm -rf ./*.bin $(FLPIMG)
