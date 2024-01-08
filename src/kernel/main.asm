@@ -1,34 +1,32 @@
-bits 16
+bits 32
 
 main:
     ; Print hello world message
-    mov si, msg_hello
+    mov esi, msg_hello
+    mov edi, ScreenBuffer
     call print
-
-    hlt
-    .halt:
-        jmp .halt
+    jmp halt
 
 print:
-    push si
     push ax
-    push bx
-
     .loop:
         lodsb
         or al, al
         jz .done
 
-        mov ah, 0x0E    ; Print character
-        mov bh, 0       ; Set page number to 0
-        int 0x10        ; Call bios interrupt
-
+        mov [edi], al
+        inc edi
+        inc edi
         jmp .loop
-    
+
     .done:
-        pop bx
         pop ax
-        pop si
         ret
 
-msg_hello: db 'Hello, world from kernel!', 0x0D, 0x0A, 0x00
+halt:
+    cli
+    hlt
+
+ScreenBuffer                        equ 0xB8000
+
+msg_hello:                          db 'Hello, world from kernel!', 0
