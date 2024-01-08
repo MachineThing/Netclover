@@ -4,13 +4,13 @@ INIT=		init.bin
 MAIN=		main.bin
 
 LIBDIR=		libs
-LIBSRC=		$(wildcard ./$(LIBDIR)/*.c)
-LIBOBJ=		$(LIBSRC:.c=.o)
+LIBSRC=		$(wildcard ./$(LIBDIR)/*.c) $(wildcard ./$(LIBDIR)/*.asm)
+LIBOBJ=		$(addsuffix .o, $(basename $(LIBSRC)))
 
 all: stage2.bin
 
 stage2.bin: $(INIT) $(MAIN)
-	$(LD) $(LDFLAGS) -T linker.ld -e _start $(INIT) $(MAIN) -o stage2.bin
+	$(LD) $(LDFLAGS) -T linker.ld -e _start $(INIT) $(MAIN) $(LIBOBJ) -o stage2.bin
 	./calcsectors.sh > size.inc
 
 $(MAIN): main.c $(LIBOBJ)
