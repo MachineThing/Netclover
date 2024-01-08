@@ -20,10 +20,13 @@ run: $(FLPIMG)
 
 # Floppy image
 $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
+	$(eval RESERVEDSIZE=$(shell expr $$(cat $(BOOTDIR)/stage2/size.inc | cut -c 17-) + 1))
+
 	dd if=/dev/zero of=$(FLPIMG) bs=512 count=2880
-	mkfs.fat -F 12 -R 4 $(FLPIMG)
+	mkfs.fat -F 12 -R $(RESERVEDSIZE) $(FLPIMG)
 	dd if=$(BOOT) of=$(FLPIMG) conv=notrunc
 	truncate -s 1440k $(FLPIMG)
+
 	mcopy -i $(FLPIMG) $(KERNEL) "::kernel.bin"
 
 # Kernel
@@ -36,4 +39,5 @@ $(BOOT): $(call DIRFILES $(BOOTDIR))
 
 # Clean
 clean:
-	rm -rf ./*.bin $(FLPIMG)
+	find . -name "*.bin" -type f -delete
+	rm -rf $(FLPIMG)

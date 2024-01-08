@@ -17,21 +17,28 @@ main:
     ; Print hello, world!
     mov esi, msg_hello
     mov edi, ScreenBuffer
+    call print
+    jmp halt
 
-.loop:
-    lodsb
-    or al, al
-    jz .done
+print:
+    push ax
+    .loop:
+        lodsb
+        or al, al
+        jz .done
 
-    mov [edi], al
-    inc edi
-    inc edi
-    jmp .loop
+        mov [edi], al
+        inc edi
+        inc edi
+        jmp .loop
 
-.done:
+    .done:
+        pop ax
+        ret
 
 halt:
-    jmp halt
+    cli
+    hlt
 
 CMOSRegisterB                       equ 0x70
 CMOSRegisterC                       equ 0x71

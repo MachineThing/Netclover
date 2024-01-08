@@ -6,9 +6,9 @@ BOOTBIN=	boot.bin
 
 all: $(BOOTBIN)
 
-$(BOOTBIN): boot.asm $(call DIRFILES $(STAGE2DIR))
+$(BOOTBIN): boot.asm $(STAGE2)
 	$(ASM) -f bin -o $(BOOTBIN) boot.asm
 	cat $(STAGE2) >> $(BOOTBIN)
 
-$(STAGE2):
+$(STAGE2): $(call DIRFILES $(STAGE2DIR))
 	make -C $(STAGE2DIR)

@@ -1,6 +1,8 @@
 org 0x7C00                                          ; Bootsector start
 bits 16
 
+%include './stage2/size.inc'
+
 ; FAT 12 Header
 jmp short init
 nop
@@ -8,7 +10,7 @@ nop
 bdb_oem:                    db 'MSWIN4.1'           ; 8 bytes
 bdb_bytes_per_sector:       dw 512
 bdb_sectors_per_cluster:    db 1
-bdb_reserved_sectors:       dw 4
+bdb_reserved_sectors:       dw STAGE2_SIZE+1        ; Bootloader sectors, including this one (Note: STAGE2_SIZE comes from stage2/size.inc, an automatically generated file)
 bdb_fat_count:              db 2
 bdb_dir_entries_count:      dw 0E0h
 bdb_total_sectors:          dw 2880                 ; 2880 * 512 = 1.44MB
@@ -49,7 +51,7 @@ main:
 
     ; Read stage 2 bootloader
     mov ax, 1
-    mov cl, 3
+    mov cl, STAGE2_SIZE
     mov bx, 0x7E00
     call disk_read
 
@@ -309,5 +311,3 @@ g_GDTDesc:
 
 times 510-($-$$) db 0
                 dw 0xAA55   ; Boot signature
-
-buffer:
