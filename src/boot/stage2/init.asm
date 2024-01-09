@@ -15,7 +15,7 @@ _start:
     out CMOSRegisterB, al
     in al, CMOSRegisterC                            ; Dummy read CMOS register C to makesure the update takes place
 
-    sti
+    ;sti
 
     call cmain
 
