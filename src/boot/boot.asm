@@ -68,27 +68,41 @@ main:
 
     ; Read stage 2 bootloader
     mov ax, 1
-    mov cl, [bdb_reserved_sectors]
+
+    mov cl, [bdb_reserved_sectors]                      ; Stage 2 sector size is bdb_reserved_sectors - 1
     sub cl, 1
+
     mov bx, 0x7E00
     call disk_read
 
-    ; Switch to protected mode
-    cli                                             ; Disable interrupts
-    ; Disable NMI interrupts (as suggested by the Intel Developers Manual)
-    in al, CMOSRegisterB                            ; Read CMOS register B
-    or al, 0x80                                     ; Set the high bit to disable NMI
-    out CMOSRegisterB, al
-    in al, CMOSRegisterC                            ; Dummy read CMOS register C to makesure the update takes place
-    
-    call EnableA20                                  ; Enable A20
-    lgdt [g_GDTDesc]                                ; Load Global Descriptor Table
+    .check_fail_reset:
+        cmp ax, 2
+        jne .check_fail_read
+        mov si, disk_reset_fail
+        jmp error
+    .check_fail_read:
+        cmp ax, 1
+        jne .read_sucess
+        mov si, disk_read_fail
+        jmp error
 
-    mov eax, cr0
-    or al, 1
-    mov cr0, eax
+    .read_sucess:
+        ; Switch to protected mode
+        cli                                             ; Disable interrupts
+        ; Disable NMI interrupts (as suggested by the Intel Developers Manual)
+        in al, CMOSRegisterB                            ; Read CMOS register B
+        or al, 0x80                                     ; Set the high bit to disable NMI
+        out CMOSRegisterB, al
+        in al, CMOSRegisterC                            ; Dummy read CMOS register C to makesure the update takes place
 
-    jmp dword 08h:0x7E00
+        call EnableA20                                  ; Enable A20
+        lgdt [g_GDTDesc]                                ; Load Global Descriptor Table
+
+        mov eax, cr0
+        or al, 1
+        mov cr0, eax
+
+        jmp dword 08h:0x7E00
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Protected mode Helpers ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -224,6 +238,8 @@ lba_to_chs:
 ;   - CL: Number of sectors to read (up to 128)
 ;   - DL: Drive number
 ;   - ES:BX: Memory address where to store read data
+; Returns:
+;   - AX: 0 if success, 1 if fail reading, 2 if fail resetting
 disk_read:
     pusha                                           ; Save all registers (saves code by not repeating push instruction)
     push cx                                         ; Temporarily save CL (Number of sectors to read)
@@ -241,34 +257,52 @@ disk_read:
         jnc .done
 
         ; Read failed
+        push ax
         call disk_reset
+        cmp ax, 0                                   ; If success?
+        je .disk_resetted
+        ; Reset failed
+        pop ax
+        popa
+        mov ax, 2                                   ; Reset fail code
+        ret
+    
+    .disk_resetted:
+        pop ax
         dec di
         test di, di
         jnz .retry
 
+    ; Read failed 3 times
     .failure:
-        mov si, disk_read_fail
-        jmp error
+        popa
+        mov ax, 1                                   ; Read fail code
+        ret
 
     .done:
         popa
+        xor ax, ax                                  ; Success code
         ret
 
 ; Resets the disk controller
 ; Parameters:
 ;   - DL: Drive number
+; Returns:
+;   - AX: 0 if success, 1 if fail
 disk_reset:
     pusha
     mov ah, 0
     stc
     int 13h
     jc .failure
+    xor ax, ax                                      ; Success code
     popa
     ret
 
     .failure:
-        mov si, disk_reset_fail
-        jmp error
+        mov ax, 1                                   ; Reset fail code
+        popa
+        ret
 
 ; Messages
 %define ENDL 0x0D, 0x0A, 0x00
