@@ -6,12 +6,12 @@ MAIN=		main.bin
 LIBDIR=		libs
 LIBSRC=		$(wildcard ./$(LIBDIR)/*.c) $(wildcard ./$(LIBDIR)/*.asm)
 LIBOBJ=		$(addsuffix .o, $(basename $(LIBSRC)))
+BOOTOBJ=	../boot.o
 
 all: stage2.bin
 
-stage2.bin: $(INIT) $(MAIN)
-	$(LD) $(LDFLAGS) -T linker.ld -e _start $(INIT) $(MAIN) $(LIBOBJ) -o stage2.bin
-	./calcsectors.sh > size.inc
+stage2.bin: $(INIT) $(MAIN) $(BOOTOBJ)
+	$(LD) $(LDFLAGS) -Tlinker.ld -e _start -r -o stage2.bin $(INIT) $(MAIN) $(LIBOBJ)
 
 $(MAIN): main.c $(LIBOBJ)
 	$(CC) $(CFLAGS) -c main.c -o $(MAIN)

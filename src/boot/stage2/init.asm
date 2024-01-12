@@ -30,27 +30,6 @@ halt:
     cli
     hlt
 
-bits 16
-goreal:
-    mov eax, cr0
-    and al, ~1
-    mov cr0, eax
-
-    jmp word 00h:goprotected
-
-goprotected:
-    mov eax, cr0
-    or al, 1
-    mov cr0, eax
-    jmp dword 08h:protagain
-
-bits 32
-protagain:
-    mov ax, 0x10
-    mov ds, ax
-    mov ss, ax
-    jmp $
-
 
 CMOSRegisterB                       equ 0x70
 CMOSRegisterC                       equ 0x71

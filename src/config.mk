@@ -6,7 +6,7 @@ CFLAGS:=	-ffreestanding -nostdlib -lgcc
 ASM:=		nasm
 #ASMFLAGS=	-f elf
 
-LD:=		$(TARGET)-gcc
+LD:=		$(TARGET)-ld
 LDFLAGS:=	-nostdlib
 
 CPWD:=		$(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))

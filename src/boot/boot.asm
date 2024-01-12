@@ -1,32 +1,49 @@
-org 0x7C00                                          ; Bootsector start
 bits 16
 
-%include './stage2/size.inc'
+extern reserved_sectors
 
 ; FAT 12 Header
 jmp short init
 nop
 
+global bdb_oem
 bdb_oem:                    db 'MSWIN4.1'           ; 8 bytes
+global bdb_bytes_per_sector
 bdb_bytes_per_sector:       dw 512
+global bdb_sectors_per_cluster
 bdb_sectors_per_cluster:    db 1
-bdb_reserved_sectors:       dw STAGE2_SIZE+1        ; Bootloader sectors, including this one (Note: STAGE2_SIZE comes from stage2/size.inc, an automatically generated file)
+global bdb_reserved_sectors
+bdb_reserved_sectors:       dw reserved_sectors        ; Bootloader sectors, including this one (Note: STAGE2_SIZE comes from stage2/size.inc, an automatically generated file)
+global bdb_fat_count
 bdb_fat_count:              db 2
+global bdb_dir_entries_count
 bdb_dir_entries_count:      dw 0E0h
+global bdb_total_sectors
 bdb_total_sectors:          dw 2880                 ; 2880 * 512 = 1.44MB
+global bdb_media_descriptor_type
 bdb_media_descriptor_type:  db 0F0h                 ; F0 = 3.5" floppy disk
+global bdb_sectors_per_fat
 bdb_sectors_per_fat:        dw 9                    ; 9 sectors/fat
+global bdb_sectors_per_track
 bdb_sectors_per_track:      dw 18
+global bdb_heads
 bdb_heads:                  dw 2
+global bdb_hidden_sectors
 bdb_hidden_sectors:         dd 0
+global bdb_large_sector_count
 bdb_large_sector_count:     dd 0
 
 ; extended boot record
+global ebr_drive_number
 ebr_drive_number:           db 0                    ; 0x00 floppy, 0x80 hdd, useless
                             db 0                    ; reserved
+global ebr_signature
 ebr_signature:              db 29h
+global ebr_volume_id
 ebr_volume_id:              db 03h, 17h, 20h, 04h   ; serial number, value doesn't matter
+global ebr_volume_label
 ebr_volume_label:           db 'HTTP OS    '        ; 11 bytes, padded with spaces
+global ebr_system_id
 ebr_system_id:              db 'FAT12   '           ; 8 bytes
 
 ; Code
@@ -51,7 +68,8 @@ main:
 
     ; Read stage 2 bootloader
     mov ax, 1
-    mov cl, STAGE2_SIZE
+    mov cl, [bdb_reserved_sectors]
+    sub cl, 1
     mov bx, 0x7E00
     call disk_read
 

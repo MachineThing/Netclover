@@ -1,7 +1,7 @@
-#include <stdint.h>
-
 #ifndef STDIO_H
 #define STDIO_H
+
+#include <stdint.h>
 
 void putchr(int x, int y, char chr);
 void putcolor(int x, int y, uint8_t color);

@@ -20,7 +20,7 @@ run: $(FLPIMG)
 
 # Floppy image
 $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
-	$(eval RESERVEDSIZE=$(shell expr $$(cat $(BOOTDIR)/stage2/size.inc | cut -c 17-) + 1))
+	$(eval RESERVEDSIZE=$(shell expr $$(stat -c %s $(BOOT)) / 512 + 1))
 
 	dd if=/dev/zero of=$(FLPIMG) bs=512 count=2880
 	mkfs.fat -F 12 -R $(RESERVEDSIZE) $(FLPIMG)
