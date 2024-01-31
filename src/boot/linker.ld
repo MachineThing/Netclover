@@ -6,7 +6,6 @@ SECTIONS {
     {
         boot.o(.text)
     }
-
     .data :
     {
         boot.o(.data)
@@ -16,10 +15,17 @@ SECTIONS {
     {
         *(.text)
     }
-
     .data :
     {
         *(.data)
+    }
+    .rodata :
+    {
+        *(.rodata)
+    }
+    .bss :
+    {
+        *(.bss)
     }
 
     reserved_sectors = (. - 0x7c00) / 512 + 1;

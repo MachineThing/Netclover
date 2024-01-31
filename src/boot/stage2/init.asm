@@ -3,6 +3,7 @@ bits 32
 section .text
     global _start
     extern cmain
+    extern ebr_drive_number
 
 _start:
     ; Setup segment registers
@@ -17,6 +18,7 @@ _start:
 
     ;sti
 
+    mov eax, [ebr_drive_number]
     call cmain
 
     ; Print hello, world!

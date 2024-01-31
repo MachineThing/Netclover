@@ -1,12 +1,24 @@
 #include <stdint.h>
 #include "libs/stdio.h"
-#include "libs/x86.h"
+#include "libs/logger.h"
+#include "libs/disk.h"
+#include "libs/fat.h"
 
-int cmain() {
-    char* message = "[boot] This is from real mode\n\r\0";
+const char logid[8] = "stage2";
+
+int cmain(uint16_t bootDrive) {
     clrscr();
-    puts("[boot] Loading kernel...\n");
-    biosPrintTest(message);
-    puts("[boot] This is from protected mode\n");
+    log(LOG_NORMAL, logid, "Loading kernel...");
+    DISK disk;
+    if (DISK_Init(&disk, bootDrive) == 0) {
+        log(LOG_NORMAL, logid, "Initialized disk!");
+    } else {
+        log(LOG_CRITICAL, logid, "Failed to initialize disk.");
+        while (true) {
+        
+        }
+    }
+    //asm("xchg %bx, %bx");
+    FAT_Initialize(&disk);
     return 0;
 }

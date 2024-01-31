@@ -69,11 +69,13 @@ main:
     ; Read stage 2 bootloader
     mov ax, 1
 
-    mov cl, [bdb_reserved_sectors]                      ; Stage 2 sector size is bdb_reserved_sectors - 1
-    sub cl, 1
+    call boot_lba_to_chs
 
     mov bx, 0x7E00
-    call disk_read
+    mov al, [bdb_reserved_sectors]                      ; Stage 2 sector size is bdb_reserved_sectors - 1
+    sub al, 1
+
+    call boot_disk_read
 
     .check_fail_reset:
         cmp ax, 2
@@ -207,7 +209,8 @@ print:
 ;   - CX (bits 0-5): Sector number
 ;     CX (bits 6-15): Cylinder
 ;   - DH: Head
-lba_to_chs:
+global boot_lba_to_chs
+boot_lba_to_chs:
     push ax
     push dx
 
@@ -234,18 +237,17 @@ lba_to_chs:
 
 ; Reads sectors from a disk
 ; Parameters:
-;   - AX: LBA address
-;   - CL: Number of sectors to read (up to 128)
+;   - AL: Number of sectors to read (up to 128)
+;   - CX (bits 0-5): Sector number
+;     CX (bits 6-15): Cylinder
+;   - DH: Head
 ;   - DL: Drive number
 ;   - ES:BX: Memory address where to store read data
 ; Returns:
 ;   - AX: 0 if success, 1 if fail reading, 2 if fail resetting
-disk_read:
+global boot_disk_read
+boot_disk_read:
     pusha                                           ; Save all registers (saves code by not repeating push instruction)
-    push cx                                         ; Temporarily save CL (Number of sectors to read)
-    call lba_to_chs                                 ; Compute CHS
-    pop ax                                          ; AL = Number of Sectors to read
-
     mov ah, 02h
     mov di, 3                                       ; Retry count
 
@@ -258,7 +260,7 @@ disk_read:
 
         ; Read failed
         push ax
-        call disk_reset
+        call boot_disk_reset
         cmp ax, 0                                   ; If success?
         je .disk_resetted
         ; Reset failed
@@ -289,26 +291,27 @@ disk_read:
 ;   - DL: Drive number
 ; Returns:
 ;   - AX: 0 if success, 1 if fail
-disk_reset:
+global boot_disk_reset
+boot_disk_reset:
     pusha
-    mov ah, 0
+    xor ah, ah
     stc
     int 13h
     jc .failure
-    xor ax, ax                                      ; Success code
     popa
+    xor ax, ax                                      ; Success code
     ret
 
     .failure:
-        mov ax, 1                                   ; Reset fail code
         popa
+        mov ax, 1                                   ; Reset fail code
         ret
 
 ; Messages
 %define ENDL 0x0D, 0x0A, 0x00
-disk_read_fail:                     db 'Failed to read from disk', ENDL
-disk_reset_fail:                    db 'Failed to reset disk', ENDL
-press_key:                          db 'Press any key to reboot', ENDL
+disk_read_fail:                     db '[Init] Failed to read from disk', ENDL
+disk_reset_fail:                    db '[Init] Failed to reset disk', ENDL
+press_key:                          db '[Init] Press any key to reboot', ENDL
 
 ; Magic numbers
 CMOSRegisterB                       equ 0x70
