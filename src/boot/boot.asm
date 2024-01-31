@@ -64,6 +64,8 @@ init:
 
 main:
     ; BIOS should set DL to drive number
+    xor dh, dh
+    push dx
     mov [ebr_drive_number], dl
 
     ; Read stage 2 bootloader

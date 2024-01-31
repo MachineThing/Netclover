@@ -47,20 +47,20 @@ uint16_t DISK_ReadSectors(DISK* disk, uint32_t lba, uint8_t sectorsToRead, void*
     DISK_LBA2CHS(disk, lba, &cylinders, &heads, &sectors);
 
     for (int i = 0; i < 3; i++) {
-        log(LOG_NORMAL, disklogid, "Reading %i sectors from disk \"%i\" to 0x%x", sectors, disk->id, dataOut);
+        log(LOG_NORMAL, disklogid, "Reading %i sectors from disk \"%i\" to 0x%x (attempt %i)", sectors, disk->id, dataOut, i);
         result = diskRead16(disk->id, cylinders, heads, sectors, sectorsToRead, dataOut);
 
         if (result != 0) {
             char* error;
 
             switch (result) {
-                case 0x01: error = "Invalid parameter";                     break;
-                case 0x02: error = "Address mark not found";                break;
-                case 0x04: error = "Sector not found/read error";           break;
-                case 0x05: error = "Reset failure";                         break;
-                case 0x06: error = "Disk changed";                          break;
-                case 0x07: error = "Drive parameter activity failed";       break;
-                default: error = "Unknown error"; 
+                case 0x01:  error = "Invalid parameter";                     break;
+                case 0x02:  error = "Address mark not found";                break;
+                case 0x04:  error = "Sector not found/read error";           break;
+                case 0x05:  error = "Reset failure";                         break;
+                case 0x06:  error = "Disk changed";                          break;
+                case 0x07:  error = "Drive parameter activity failed";       break;
+                default:    error = "Unknown error"; 
             }
             log(LOG_ERROR, disklogid, "Failed to read disk! (%s)", error);
             if (DISK_Reset(disk) == (uint16_t)1) {
@@ -72,6 +72,6 @@ uint16_t DISK_ReadSectors(DISK* disk, uint32_t lba, uint8_t sectorsToRead, void*
         }
     }
 
-    log(LOG_ERROR, disklogid, "Failed to read disk! Exhausted all three attempts.");
+    log(LOG_ERROR, disklogid, "Exhausted all three attempts.");
     return result;
 }

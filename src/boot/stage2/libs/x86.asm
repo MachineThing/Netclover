@@ -106,7 +106,6 @@ diskRead16:
     push ebx
     push es
 
-
     mov dl, [bp + 8]                               ; DL = Drive number
 
     mov ch, [bp + 12]                               ; CH = Cylinder to bits 8-15
@@ -123,7 +122,6 @@ diskRead16:
     mov al, [bp + 24]                              ; AL = count
 
     LinearToSegOffset [bp + 28], es, ebx, bx
-    xchg bx, bx
     
     mov ah, 02h
     int 13h

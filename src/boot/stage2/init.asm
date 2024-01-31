@@ -15,10 +15,11 @@ _start:
     and al, 0x7F                                    ; Unset the high bit to enable NMI
     out CMOSRegisterB, al
     in al, CMOSRegisterC                            ; Dummy read CMOS register C to makesure the update takes place
-
-    ;sti
-
-    mov eax, [ebr_drive_number]
+    
+    ; Repush DX as a 32 bit register (EAX)
+    xor eax, eax
+    pop ax
+    push eax
     call cmain
 
     ; Print hello, world!
