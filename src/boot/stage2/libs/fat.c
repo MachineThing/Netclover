@@ -2,9 +2,11 @@
 
 #include "fat.h"
 #include "stdio.h"
+#include "ctype.h"
 #include "logger.h"
 #include "string.h"
 #include "memdefs.h"
+#include "minmax.h"
 
 const char fatlogid[8] = "filesys";
 
@@ -125,7 +127,11 @@ uint16_t FAT_Initialize(DISK* disk) {
     return 0;
 }
 
-FAT_File* FAT_Open(DISK* disk, FAT_DirectoryEntry* entry) {
+uint32_t FAT_ClusterToLba(uint32_t cluster) {
+    return dataSectionLba + (cluster - 2) * bootSector.SectorsPerCluster;
+}
+
+FAT_File* FAT_OpenEntry(DISK* disk, FAT_DirectoryEntry* entry) {
     int handle = -1;
     for (int i = 0; i < MAX_FILE_HANDLES && handle < 0; i++) {
         if (!fatData->OpenedFiles[i].Opened) {
@@ -140,17 +146,175 @@ FAT_File* FAT_Open(DISK* disk, FAT_DirectoryEntry* entry) {
     }
 
     // Setup vars
-    return (FAT_File*)NULL;
+    FAT_FileData* fd = &fatData->OpenedFiles[handle];
+    fd->Public.Handle = handle;
+    fd->Public.IsDirectory = (entry->Attributes & FAT_ATTRIBUTE_DIRECTORY != 0);
+    fd->Public.Position = 0;
+    fd->Public.Size = entry->Size;
+    fd->FirstCluster = entry->FirstClusterLow + ((uint32_t)entry->FirstClusterHigh << 16);
+    fd->CurrentCluster = fd->FirstCluster;
+    fd->CurrentSectorInCluster = 0;
+
+    if (DISK_ReadSectors(disk, FAT_ClusterToLba(fd->CurrentCluster), 1, fd->Buffer) != 0) {
+        log(LOG_ERROR, fatlogid, "Open entry failed. Cluster=%u LBA=%u", fd->CurrentCluster, FAT_ClusterToLba(fd->CurrentCluster));
+        for (int i = 0; i < 11; i++) {
+            printf("%c", entry->Name[i]);
+        }
+        putc('\n');
+        return (FAT_File*)NULL;
+    }
+
+    fd->Opened = true;
+    return &fd->Public;
 }
 
-uint32_t FAT_Read(DISK* disk, FAT_File file, uint32_t byteCount, void* dataOut) {
+FAT_File* FAT_Open(DISK* disk, char* path) {
+    char name[MAX_PATH_SIZE];
 
+    if (path[0] == '/') { // Ignore leading slash
+        path++;
+    }
+
+    FAT_File* current = &fatData->RootDirectory.Public;
+
+    while (*path) {
+        // Extract next file name from path
+        bool isLast = false;
+        const char* delim = strchr(path, '/');
+        if (delim != NULL) {
+            memcpy(name, path, delim - path);
+            name[delim - path + 1] = '\0';
+            path = delim + 1;
+        } else {
+            unsigned len = strlen(path);
+            memcpy(name, path, len);
+            name[len + 1] = '\0';
+            path += len;
+            isLast = true;
+        }
+        // Find directory entry in current directory
+        FAT_DirectoryEntry entry;
+        bool canFindFile = FAT_FindFile(disk, current, name, &entry);
+        FAT_Close(current);
+        if (canFindFile) {
+            if (!isLast && entry.Attributes & FAT_ATTRIBUTE_DIRECTORY == 0) {
+                log(LOG_ERROR, fatlogid, "%s is not a directory", name);
+                return NULL;
+            }
+
+            log(LOG_NORMAL, fatlogid, "Opening %s", name);
+            current = FAT_OpenEntry(disk, &entry);
+        } else {
+            log(LOG_ERROR, fatlogid, "file \"%s\" not found", path);
+            return NULL;
+        }
+    }
+
+    return current;
 }
 
-uint16_t FAT_ReadEntry(DISK* disk, FAT_File file, FAT_DirectoryEntry* dirEntry) {
+bool FAT_FindFile(DISK* disk, FAT_File* file, const char* name, FAT_DirectoryEntry* entryOut) {
+    char fatName[12];
+    FAT_DirectoryEntry entry;
 
+    memset(fatName, ' ', sizeof(fatName));
+    fatName[11] = '\0';
+
+
+    const char* ext = strchr(name, '.');
+    if (ext == NULL) {
+        ext = name + 11;
+    }
+
+    for (int i = 0; i < 8 && name[i] && name + i < ext; i++) {
+        fatName[i] = toupper(name[i]);
+    }
+
+    if (ext != name + 11) {
+        for (int i = 0; i < 3 && ext[i + 1]; i++) {
+            fatName[i + 8] = toupper(ext[i + 1]);
+        }
+    }
+
+    while (FAT_ReadEntry(disk, file, &entry)) {
+        if (memcmp(fatName, entry.Name, 11) == 0) {
+            *entryOut = entry;
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut) {
+    // Get file data
+    FAT_FileData* fd = (file->Handle == ROOT_DIRECTORY_HANDLE)
+        ? &fatData->RootDirectory
+        : &fatData->OpenedFiles[file->Handle];
+    
+    uint8_t* u8Dataout = (uint8_t)dataOut;
+    if (!fd->Public.IsDirectory || (fd->Public.IsDirectory && fd->Public.Size != 0)) {
+        byteCount = min(byteCount, fd->Public.Size - fd->Public.Position);
+    }
+
+    while (byteCount > 0) {
+        uint32_t leftInBuffer = SECTOR_SIZE - (fd->Public.Position % SECTOR_SIZE);
+        uint32_t take = min(byteCount, leftInBuffer);
+
+        memcpy(u8Dataout, fd->Buffer + fd->Public.Position % SECTOR_SIZE, take);
+        u8Dataout += take;
+        fd->Public.Position += take;
+        byteCount -= take;
+
+        if (leftInBuffer == take) {
+            if (fd->Public.Handle == ROOT_DIRECTORY_HANDLE) {
+                ++fd->CurrentCluster;
+                
+                if (DISK_ReadSectors(disk, fd->CurrentCluster, 1, fd->Buffer) != 0) {
+                    log(LOG_ERROR, fatlogid, "Read error");
+                    break;
+                } 
+            }
+        } else {
+            if (++fd->CurrentSectorInCluster >= bootSector.SectorsPerCluster) {
+                fd->CurrentSectorInCluster = 0;
+                fd->CurrentCluster = FAT_NextCluster(fd->CurrentCluster);
+            }
+
+            if (fd->CurrentCluster >= 0xFF8) {
+                // End of file
+                fd->Public.Size = fd->Public.Position;
+                break;
+            }
+
+            // Read next sector
+            if (DISK_ReadSectors(disk, FAT_ClusterToLba(fd->CurrentCluster) + fd->CurrentSectorInCluster, 1, fd->Buffer) != 0) {
+                log(LOG_ERROR, fatlogid, "Read error");
+                break;
+            }
+        }
+    }
+
+    return u8Dataout - (uint8_t*)dataOut;
+}
+
+uint16_t FAT_ReadEntry(DISK* disk, FAT_File* file, FAT_DirectoryEntry* dirEntry) {
+    return FAT_Read(disk, file, sizeof(FAT_DirectoryEntry), dirEntry) == sizeof(FAT_DirectoryEntry);
+}
+
+uint32_t FAT_NextCluster(uint32_t currentCluster) {
+    uint32_t fatIndex = currentCluster * 3 / 2;
+
+    if (currentCluster % 2 == 0)
+        return (*(uint16_t*)(fat + fatIndex)) & 0x0FFF;
+    else
+        return (*(uint16_t*)(fat + fatIndex)) >> 4;
 }
 
 void FAT_Close(FAT_File* file) {
-
+    if (file->Handle == ROOT_DIRECTORY_HANDLE) {
+        file->Position = 0;
+        rootDirectory.CurrentCluster = fatData->RootDirectory.FirstCluster;
+    } else {
+        fatData->OpenedFiles[file->Handle].Opened = false;
+    }
 }

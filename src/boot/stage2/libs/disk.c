@@ -5,13 +5,29 @@
 
 const char disklogid[8] = "disk";
 
+char* getStatus(uint16_t result) {
+    char* error;
+    switch (result) {
+        case 0x01:  error = "Parameter out of range";                break;
+        case 0x02:  error = "Address mark not found";                break;
+        case 0x04:  error = "Sector not found/read error";           break;
+        case 0x05:  error = "Reset failure";                         break;
+        case 0x06:  error = "Disk changed";                          break;
+        case 0x07:  error = "Drive parameter activity failed";       break;
+        default:    error = "Unknown error"; 
+    }
+
+    return error;
+}
+
 uint16_t DISK_Init(DISK* disk, uint8_t driveNumber) {
     uint8_t driveType;
     uint16_t cylinders, heads, sectors;
 
-    if (diskGetDriveParams16(disk->id, &driveType, &cylinders, &heads, &sectors) != 0) {
-        log(LOG_CRITICAL, disklogid, "Failed to init disk! Failed to get drive parameters.");
-        return 1;
+    uint16_t result = diskGetDriveParams16(driveNumber, &driveType, &cylinders, &heads, &sectors);
+    if (result != 0) {
+        log(LOG_CRITICAL, disklogid, "Failed to init disk! Failed to get drive parameters. %s", getStatus(result));
+        return result;
     }
 
     disk->id = driveNumber;
@@ -57,18 +73,7 @@ uint16_t DISK_ReadSectors(DISK* disk, uint32_t lba, uint8_t sectorsToRead, void*
         result = diskRead16(disk->id, cylinders, heads, sectors, sectorsToRead, dataOut);
 
         if (result != 0) {
-            char* error;
-
-            switch (result) {
-                case 0x01:  error = "Parameter out of range";                break;
-                case 0x02:  error = "Address mark not found";                break;
-                case 0x04:  error = "Sector not found/read error";           break;
-                case 0x05:  error = "Reset failure";                         break;
-                case 0x06:  error = "Disk changed";                          break;
-                case 0x07:  error = "Drive parameter activity failed";       break;
-                default:    error = "Unknown error"; 
-            }
-            log(LOG_ERROR, disklogid, "Failed to read disk! (%s)", error);
+            log(LOG_ERROR, disklogid, "Failed to read disk! (%s)", getStatus(result));
             if (DISK_Reset(disk) == (uint16_t)1) {
                 return 1;
             }
