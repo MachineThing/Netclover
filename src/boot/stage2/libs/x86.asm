@@ -66,10 +66,9 @@ global inb
 global diskReset16
 global diskRead16
 global diskGetDriveParams16
-global biosPrintTest
+global getVendorId
 
 extern boot_disk_reset
-extern boot_disk_read
 
 outb:
     mov dx, [esp + 4]
@@ -105,7 +104,6 @@ diskRead16:
     bits 16
     push ebx
     push es
-    xchg bx, bx
 
     mov dl, [bp + 8]                               ; DL = Drive number
 
@@ -204,23 +202,28 @@ diskGetDriveParams16:
     restoreCallFrame
     ret
 
-biosPrintTest:
+getVendorId:
     bits 32
-    mov si, [esp + 4]
-    enterRealMode
-    bits 16
-    .loop:
-        lodsb
-        or al, al
-        jz .done
+    newCallFrame
 
-        mov ah, 0x0E                                ; Print character
-        mov bh, 0                                   ; Set page number to 0
-        int 0x10                                    ; Call bios interrupt
+    ; Get vendor ID and write to pointer
+    push eax
+    push ecx
+    push ebx
+    push eax
 
-        jmp .loop
-    
-    .done:
-        enterProtectedMode
-        bits 32
-        ret
+    xor eax, eax
+    cpuid
+    mov eax, [ebp+8]
+    mov dword [eax], ebx
+    mov dword [eax+4], edx
+    mov dword [eax+8], ecx
+    xor bl, bl
+    mov byte  [eax+12], bl
+
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    restoreCallFrame
+    ret

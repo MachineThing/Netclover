@@ -13,5 +13,5 @@ uint16_t __attribute__((cdecl)) diskRead16(int8_t drive, uint16_t cylinder, uint
 uint16_t __attribute__((cdecl)) diskGetDriveParams16(int8_t drive, uint8_t* driveTypeOut, uint16_t* cylindersOut, uint16_t* headsOut, uint16_t* sectorsOut);
 // 0 if success, 1 if failed
 
-void __attribute__((cdecl)) biosPrintTest(char* str);
+void __attribute__((cdecl)) getVendorId(char* vendorOut);
 #endif
