@@ -105,6 +105,7 @@ diskRead16:
     bits 16
     push ebx
     push es
+    xchg bx, bx
 
     mov dl, [bp + 8]                               ; DL = Drive number
 
@@ -113,7 +114,7 @@ diskRead16:
     mov cl, [bp + 13]                               ; CL = Cylinder to bits 6-7
     shl cl, 6
 
-    mov dh, [bp + 17]                               ; DH = Head
+    mov dh, [bp + 16]                               ; DH = Head
 
     mov al, [bp + 20]                              ; CL = Sector to bits 0-5
     and al, 3Fh
@@ -121,7 +122,6 @@ diskRead16:
 
     mov al, [bp + 24]                              ; AL = count
 
-    xchg bx, bx
     LinearToSegOffset [bp + 28], es, ebx, bx
     
     mov ah, 02h
@@ -182,16 +182,16 @@ diskGetDriveParams16:
     LinearToSegOffset [bp + 16], es, esi, si
     mov [es:si], bx
 
-    ; Heads
-    mov cl, dh                                      ; DH = Heads
-    inc cx
-    LinearToSegOffset [bp + 20], es, esi, si
-    mov [es:si], cx
-
     ; Sectors
     xor ch, ch                                      ; CL (bits 6-7) = Sector number
     and cl, 3Fh
     LinearToSegOffset [bp + 24], es, esi, si
+    mov [es:si], cx
+
+    ; Heads
+    mov cl, dh                                      ; DH = Heads
+    inc cx
+    LinearToSegOffset [bp + 20], es, esi, si
     mov [es:si], cx
 
 .ending:

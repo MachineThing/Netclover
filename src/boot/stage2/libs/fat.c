@@ -81,6 +81,11 @@ uint16_t FAT_Initialize(DISK* disk) {
         log(LOG_ERROR, fatlogid, "Failed to read bootsector!");
         return 1;
     }
+    // Check signature
+    if (bootSector.Signature != 0x29) {
+        log(LOG_ERROR, fatlogid, "Bad bootsector signature!");
+        return 1;
+    }
     // Get FAT Size
     fat = (uint8_t*)fatData + sizeof(FAT_Data);
     uint32_t fatSize = bootSector.BytesPerSector * bootSector.SectorsPerFat;
