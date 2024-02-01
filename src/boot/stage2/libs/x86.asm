@@ -207,7 +207,7 @@ getVendorId:
     newCallFrame
 
     ; Get vendor ID and write to pointer
-    push eax
+    push edx
     push ecx
     push ebx
     push eax
