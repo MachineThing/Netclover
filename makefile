@@ -16,7 +16,7 @@ bochs: $(FLPIMG)
 	bochs -f bochs_config -q
 
 run: $(FLPIMG)
-	$(QEMU) $(FLPIMG)
+	$(QEMU) -fda $(FLPIMG)
 
 # Floppy image
 $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
@@ -27,7 +27,7 @@ $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
 	dd if=$(BOOT) of=$(FLPIMG) conv=notrunc
 	truncate -s 1440k $(FLPIMG)
 
-	mcopy -i $(FLPIMG) $(KERNEL) "::kernel.bin"
+	mcopy -i $(FLPIMG) $(KERNEL) ::kernel.bin
 
 # Kernel
 $(KERNEL): $(call DIRFILES $(KERNELDIR))

@@ -47,14 +47,16 @@ uint16_t DISK_ReadSectors(DISK* disk, uint32_t lba, uint8_t sectorsToRead, void*
     DISK_LBA2CHS(disk, lba, &cylinders, &heads, &sectors);
 
     for (int i = 0; i < 3; i++) {
-        log(LOG_NORMAL, disklogid, "Reading %i sectors from disk \"%i\" to 0x%x (attempt %i)", sectors, disk->id, dataOut, i);
+        //log(LOG_NORMAL, disklogid, "Reading %i sectors from drive \"%i\" to 0x%x (attempt %i)", sectorsToRead, disk->id, dataOut, i+1);
+        //log(LOG_NORMAL, disklogid, "LBA: %i", lba);
+        
         result = diskRead16(disk->id, cylinders, heads, sectors, sectorsToRead, dataOut);
 
         if (result != 0) {
             char* error;
 
             switch (result) {
-                case 0x01:  error = "Invalid parameter";                     break;
+                case 0x01:  error = "Parameter out of range";                break;
                 case 0x02:  error = "Address mark not found";                break;
                 case 0x04:  error = "Sector not found/read error";           break;
                 case 0x05:  error = "Reset failure";                         break;

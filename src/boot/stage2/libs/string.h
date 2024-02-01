@@ -1,6 +1,7 @@
 #ifndef STRING_H
 #define STRING_H
 
-void strcpy(char *dest, const char *src);
+char* strcpy(char *dest, const char *src);
+const char* strchr(const char* str, char chr);
 
 #endif

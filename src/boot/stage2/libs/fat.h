@@ -24,7 +24,7 @@ typedef struct
 typedef struct
 {
     int Handle;
-    bool isDirectory;
+    bool IsDirectory;
     uint32_t Position;
     uint32_t Size;
 } FAT_File;
@@ -41,7 +41,7 @@ enum FAT_Attributes
 };
 
 uint16_t FAT_Initialize(DISK* disk);
-FAT_File* FAT_Open(DISK* disk, const char* path);
+FAT_File* FAT_Open(DISK* disk, FAT_DirectoryEntry* entry);
 uint32_t FAT_Read(DISK* disk, FAT_File file, uint32_t byteCount, void* dataOut);
 uint16_t FAT_ReadEntry(DISK* disk, FAT_File file, FAT_DirectoryEntry* dirEntry);
 void FAT_Close(FAT_File* file);

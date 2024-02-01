@@ -113,7 +113,7 @@ diskRead16:
     mov cl, [bp + 13]                               ; CL = Cylinder to bits 6-7
     shl cl, 6
 
-    mov dh, [bp + 16]                               ; DH = Head
+    mov dh, [bp + 17]                               ; DH = Head
 
     mov al, [bp + 20]                              ; CL = Sector to bits 0-5
     and al, 3Fh
@@ -121,6 +121,7 @@ diskRead16:
 
     mov al, [bp + 24]                              ; AL = count
 
+    xchg bx, bx
     LinearToSegOffset [bp + 28], es, ebx, bx
     
     mov ah, 02h

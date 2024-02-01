@@ -17,9 +17,8 @@ _start:
     in al, CMOSRegisterC                            ; Dummy read CMOS register C to makesure the update takes place
     
     ; Repush DX as a 32 bit register (EAX)
-    xor eax, eax
-    pop ax
-    push eax
+    mov dl, [ebr_drive_number]
+    push dx
     call cmain
 
     ; Print hello, world!

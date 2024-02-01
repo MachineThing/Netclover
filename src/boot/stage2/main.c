@@ -8,7 +8,7 @@ const char logid[8] = "stage2";
 
 int cmain(uint16_t bootDrive) {
     clrscr();
-    log(LOG_NORMAL, logid, "Loading kernel... (Drive %i)", bootDrive);
+    log(LOG_NORMAL, logid, "Loading kernel...");
     DISK disk;
     if (DISK_Init(&disk, bootDrive) == 0) {
         log(LOG_NORMAL, logid, "Initialized disk!");
