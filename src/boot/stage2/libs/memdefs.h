@@ -2,6 +2,7 @@
 #define MEMDEFS_H
 
 #define MEMORY_FAT_ADDR     ((void*)0x20000)
+#define MEMORY_FAT_SIZE     0x10000
 
 #define MEMORY_KERNEL_ADDR  ((void*)0x100000)
 

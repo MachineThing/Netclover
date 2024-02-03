@@ -35,8 +35,7 @@ uint16_t DISK_Init(DISK* disk, uint8_t driveNumber) {
     disk->heads = heads;
     disk->sectors = sectors;
 
-    log(LOG_NORMAL, disklogid, "Disk geometry:");
-    log(LOG_NORMAL, disklogid, "C: %i | H: %i | S: %i", cylinders, heads, sectors);
+    log(LOG_NORMAL, disklogid, "Disk geometry: \"C: %i | H: %i | S: %i\"", cylinders, heads, sectors);
 
     return 0;
 }
@@ -66,7 +65,7 @@ uint16_t DISK_ReadSectors(DISK* disk, uint32_t lba, uint8_t sectorsToRead, void*
     DISK_LBA2CHS(disk, lba, &cylinders, &heads, &sectors);
 
     for (int i = 0; i < 3; i++) {
-        log(LOG_NORMAL, disklogid, "Reading %i sectors from drive \"%i\" to 0x%x (attempt %i)", sectorsToRead, disk->id, dataOut, i+1);
+        log(LOG_NORMAL, disklogid, "Reading %i sectors from drive \"%i\" @ LBA \"%i\" to 0x%x (attempt %i)", sectorsToRead, disk->id, lba, dataOut, i+1);
         //log(LOG_NORMAL, disklogid, "LBA: %i", lba);
         //log(LOG_NORMAL, disklogid, "C: %i | H: %i | S: %i", cylinders, heads, sectors);
         

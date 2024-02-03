@@ -14,7 +14,6 @@ const char fatlogid[8] = "filesys";
 #define MAX_PATH_SIZE           256
 #define MAX_FILE_HANDLES        10
 #define ROOT_DIRECTORY_HANDLE   -1
-#define MEMORY_FAT_SIZE         0x10000
 
 typedef struct 
 {
@@ -118,7 +117,7 @@ uint16_t FAT_Initialize(DISK* disk) {
         return 1;
     }
 
-    uint32_t rootDirSectors = (rootDirSize * bootSector.BytesPerSector - 1) / bootSector.BytesPerSector;
+    uint32_t rootDirSectors = (rootDirSize + bootSector.BytesPerSector - 1) / bootSector.BytesPerSector;
     dataSectionLba = rootDirLba + rootDirSectors;
 
     for (int i = 0; i < MAX_FILE_HANDLES; i++) {
@@ -168,7 +167,7 @@ FAT_File* FAT_OpenEntry(DISK* disk, FAT_DirectoryEntry* entry) {
     return &fd->Public;
 }
 
-FAT_File* FAT_Open(DISK* disk, char* path) {
+FAT_File* FAT_Open(DISK* disk, const char* path) {
     char name[MAX_PATH_SIZE];
 
     if (path[0] == '/') { // Ignore leading slash
@@ -205,7 +204,7 @@ FAT_File* FAT_Open(DISK* disk, char* path) {
             log(LOG_NORMAL, fatlogid, "Opening %s", name);
             current = FAT_OpenEntry(disk, &entry);
         } else {
-            log(LOG_ERROR, fatlogid, "file \"%s\" not found", path);
+            log(LOG_ERROR, fatlogid, "file \"%s\" not found", name);
             return NULL;
         }
     }
@@ -219,7 +218,6 @@ bool FAT_FindFile(DISK* disk, FAT_File* file, const char* name, FAT_DirectoryEnt
 
     memset(fatName, ' ', sizeof(fatName));
     fatName[11] = '\0';
-
 
     const char* ext = strchr(name, '.');
     if (ext == NULL) {
@@ -251,7 +249,8 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
         ? &fatData->RootDirectory
         : &fatData->OpenedFiles[file->Handle];
     
-    uint8_t* u8Dataout = (uint8_t)dataOut;
+    uint8_t* u8Dataout = (uint8_t*)dataOut;
+
     if (!fd->Public.IsDirectory || (fd->Public.IsDirectory && fd->Public.Size != 0)) {
         byteCount = min(byteCount, fd->Public.Size - fd->Public.Position);
     }
@@ -268,28 +267,28 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
         if (leftInBuffer == take) {
             if (fd->Public.Handle == ROOT_DIRECTORY_HANDLE) {
                 ++fd->CurrentCluster;
-                
                 if (DISK_ReadSectors(disk, fd->CurrentCluster, 1, fd->Buffer) != 0) {
-                    log(LOG_ERROR, fatlogid, "Read error");
+                    log(LOG_ERROR, fatlogid, "Read error on take!");
                     break;
                 } 
-            }
-        } else {
-            if (++fd->CurrentSectorInCluster >= bootSector.SectorsPerCluster) {
-                fd->CurrentSectorInCluster = 0;
-                fd->CurrentCluster = FAT_NextCluster(fd->CurrentCluster);
-            }
+            } else {
+                if (++fd->CurrentSectorInCluster >= bootSector.SectorsPerCluster) {
+                    fd->CurrentSectorInCluster = 0;
+                    fd->CurrentCluster = FAT_NextCluster(fd->CurrentCluster);
+                }
 
-            if (fd->CurrentCluster >= 0xFF8) {
-                // End of file
-                fd->Public.Size = fd->Public.Position;
-                break;
-            }
+                if (fd->CurrentCluster >= 0xFF8) {
+                    // End of file
+                    fd->Public.Size = fd->Public.Position;
+                    break;
+                }
 
-            // Read next sector
-            if (DISK_ReadSectors(disk, FAT_ClusterToLba(fd->CurrentCluster) + fd->CurrentSectorInCluster, 1, fd->Buffer) != 0) {
-                log(LOG_ERROR, fatlogid, "Read error");
-                break;
+                // Read next sector
+                asm("xchg %bx, %bx");
+                if (DISK_ReadSectors(disk, FAT_ClusterToLba(fd->CurrentCluster) + fd->CurrentSectorInCluster, 1, fd->Buffer) != 0) {
+                    log(LOG_ERROR, fatlogid, "Read error!");
+                    break;
+                }
             }
         }
     }
@@ -297,7 +296,7 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
     return u8Dataout - (uint8_t*)dataOut;
 }
 
-uint16_t FAT_ReadEntry(DISK* disk, FAT_File* file, FAT_DirectoryEntry* dirEntry) {
+bool FAT_ReadEntry(DISK* disk, FAT_File* file, FAT_DirectoryEntry* dirEntry) {
     return FAT_Read(disk, file, sizeof(FAT_DirectoryEntry), dirEntry) == sizeof(FAT_DirectoryEntry);
 }
 

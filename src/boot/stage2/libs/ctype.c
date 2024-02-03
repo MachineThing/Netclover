@@ -1,12 +1,12 @@
-int isupper(int c) {
+char isupper(char c) {
     return (c >= 'A' && c <= 'Z');
 }
 
-int islower(int c) {
+char islower(char c) {
     return (c >= 'a' && c <= 'z');
 }
 
-int toupper(int c) {
+char toupper(char c) {
     if (islower(c)) {
         return c - 'a' + 'A';
     } else {
@@ -14,7 +14,7 @@ int toupper(int c) {
     }
 }
 
-int tolower(int c) {
+char tolower(char c) {
     if (isupper(c)) {
         return c - 'A' + 'a';
     } else {

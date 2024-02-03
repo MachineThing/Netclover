@@ -8,7 +8,7 @@
 
 const char logid[8] = "stage2";
 
-__attribute__((cdecl)) int cmain(uint16_t bootDrive) {
+int cmain(uint16_t bootDrive) {
     clrscr();
     static char vendorid[13] = ""; // CPU ID is 12 bytes and null pointer = 13 bytes
     
@@ -36,6 +36,8 @@ __attribute__((cdecl)) int cmain(uint16_t bootDrive) {
     FAT_File* kernel = FAT_Open(&disk, "/kernel.bin");
     uint32_t read;
     uint8_t* kernelBuffer = (uint8_t*)MEMORY_KERNEL_ADDR;
+
+    log(LOG_NORMAL, logid, "At this point the kernel should be able to be read!");
 
     return 0;
 }

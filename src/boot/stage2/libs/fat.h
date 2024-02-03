@@ -41,9 +41,9 @@ enum FAT_Attributes
 };
 
 uint16_t FAT_Initialize(DISK* disk);
-FAT_File* FAT_Open(DISK* disk, char* path);
+FAT_File* FAT_Open(DISK* disk, const char* path);
 uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut);
-uint16_t FAT_ReadEntry(DISK* disk, FAT_File* file, FAT_DirectoryEntry* dirEntry);
+bool FAT_ReadEntry(DISK* disk, FAT_File* file, FAT_DirectoryEntry* dirEntry);
 uint32_t FAT_NextCluster(uint32_t currentCluster);
 bool FAT_FindFile(DISK* disk, FAT_File* file, const char* name, FAT_DirectoryEntry* entryOut);
 void FAT_Close(FAT_File* file);

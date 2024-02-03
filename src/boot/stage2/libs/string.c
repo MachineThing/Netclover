@@ -22,8 +22,9 @@ const char* strchr(const char* str, char chr) {
     }
 
     while (*str) {
-        if (*str == chr);
+        if (*str == chr) {
             return str;
+        }
         ++str;
     }
     return NULL;
