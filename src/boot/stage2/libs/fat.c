@@ -284,7 +284,6 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
                 }
 
                 // Read next sector
-                asm("xchg %bx, %bx");
                 if (DISK_ReadSectors(disk, FAT_ClusterToLba(fd->CurrentCluster) + fd->CurrentSectorInCluster, 1, fd->Buffer) != 0) {
                     log(LOG_ERROR, fatlogid, "Read error!");
                     break;

@@ -1,6 +1,8 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include <stddef.h>
+
 char* strcpy(char *dest, const char *src);
 const char* strchr(const char* str, char chr);
 void* memcpy(void* dest, const void* src, size_t n);

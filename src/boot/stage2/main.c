@@ -5,8 +5,13 @@
 #include "libs/fat.h"
 #include "libs/x86.h"
 #include "libs/memdefs.h"
+#include "libs/string.h"
 
 const char logid[8] = "stage2";
+
+typedef void (*kernelExe)();
+uint8_t* memLoadBuffer = (uint8_t*)MEMORY_LOAD_KERNEL;
+uint8_t* memKernel = (uint8_t*)MEMORY_KERNEL_ADDR;
 
 int cmain(uint16_t bootDrive) {
     clrscr();
@@ -33,11 +38,19 @@ int cmain(uint16_t bootDrive) {
         return 1;
     }
 
-    FAT_File* kernel = FAT_Open(&disk, "/kernel.bin");
+    FAT_File* kernelfd = FAT_Open(&disk, "/kernel.bin");
     uint32_t read;
-    uint8_t* kernelBuffer = (uint8_t*)MEMORY_KERNEL_ADDR;
+    uint8_t* memBuffer = memKernel;
 
-    log(LOG_NORMAL, logid, "At this point the kernel should be able to be read!");
+    while ((read = FAT_Read(&disk, kernelfd, MEMORY_LOAD_SIZE, memLoadBuffer))) {
+        memcpy(memBuffer, memLoadBuffer, read);
+        memBuffer += read;
+    }
+    
+    FAT_Close(kernelfd);
+    kernelExe kernelStart = (kernelExe)memKernel;
+    
+    kernelStart(bootDrive);
 
     return 0;
 }
