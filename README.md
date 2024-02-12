@@ -1,4 +1,4 @@
-# HTTP OS
+# Netclover 🍀
 
 This is a hobby operating system that acts as a http server.
 
