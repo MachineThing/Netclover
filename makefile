@@ -6,7 +6,7 @@ STATICDIR=	static
 
 BOOT=		$(BOOTDIR)/boot.bin
 KERNEL=		$(KERNELDIR)/kernel.bin
-FLPIMG=		httpos.img
+FLPIMG=		netclover.img
 
 .PHONY: all run clean
 

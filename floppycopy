@@ -1,5 +1,5 @@
 #!/bin/bash
-# Automatically copies HTTP OS to a floppy disk
+# Automatically copies Netclover OS to a floppy disk
 
 if [ "$EUID" -ne 0 ]; then
     echo "This script must be run as root!"
@@ -11,7 +11,7 @@ function write_floppy {
 serial=$(sudo dd if=/dev/$selected_drive bs=1 skip=38 count=4 status=none | xxd -p)
 if [ "$serial" != "29031721" ]; then
     while true; do
-        read -p "Are you sure you want to write to \"/dev/$selected_drive\"? THIS WILL OVERWRITE DATA! (Y/n)" answer
+        read -p "Serial not matching, are you sure you want to write to \"/dev/$selected_drive\"? THIS WILL OVERWRITE DATA! (Y/n)" answer
         case "$answer" in
             [Yy]|[Yy][Ee][Ss]|"")
                 break
@@ -25,10 +25,10 @@ if [ "$serial" != "29031721" ]; then
                 ;;
         esac
     done
-    dd if=./httpos.img | pv -s 1440K | dd of=/dev/$selected_drive bs=4096
-    echo Done!
-    exit 0
 fi
+dd if=./netclover.img | pv -s 1440K | dd of=/dev/$selected_drive bs=4096
+echo Done!
+exit 0
 
 }
 
