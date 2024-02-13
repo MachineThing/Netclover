@@ -1,6 +1,6 @@
 #include "gdt.h"
 
-extern void gdt_flush(addr_t);
+extern void gdt_flush(uint32_t addr);
 
 #define total_entries 5
 
@@ -10,7 +10,7 @@ struct gdt_ptr_struct   gdt_ptr;
 
 void initGDT() {
     gdt_ptr.limit = (sizeof(struct gdt_entry_struct) * total_entries) - 1;
-    gdt_ptr.base = &gdt_entries;
+    gdt_ptr.base = (uint32_t)&gdt_entries;
 
     setGDTGate(0, 0, 0, 0, 0); // Null segment
 
@@ -28,7 +28,7 @@ void initGDT() {
     GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_TYPE | GDT_ACCESS_RW,
     0xCF); // Userland data segment
 
-    gdt_flush(&gdt_ptr);
+    gdt_flush((uint32_t)&gdt_ptr);
 }
 
 void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t granularity) {
