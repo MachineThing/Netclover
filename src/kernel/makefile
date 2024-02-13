@@ -8,17 +8,17 @@ LIBOBJ=		$(addsuffix .o, $(basename $(LIBSRC)))
 
 all: kernel.bin
 
-kernel.bin: $(MAIN) gdt.o gdtasm.o
-	$(LD) $(LDFLAGS) -Tlinker.ld -o kernel.bin $(MAIN) $(LIBOBJ) gdt.o gdtasm.o
-
-gdt.o: gdt.c
-	$(CC) $(CFLAGS) -c gdt.c -o gdt.o
-
-gdtasm.o: gdt.asm
-	$(ASM) -f elf32 -o gdtasm.o gdt.asm
+kernel.bin: $(MAIN) x86/gdt.o x86/gdtasm.o
+	$(LD) $(LDFLAGS) -Tlinker.ld -o kernel.bin $(MAIN) $(LIBOBJ) x86/gdt.o x86/gdtasm.o
 
 $(MAIN): main.c $(LIBOBJ)
 	$(CC) $(CFLAGS) -c main.c -o $(MAIN)
 
 $(LIBOBJ): $(LIBSRC)
 	make -C $(LIBDIR)
+
+x86/gdt.o: x86/gdt.c
+	$(CC) $(CFLAGS) -c x86/gdt.c -o x86/gdt.o
+
+x86/gdtasm.o: x86/gdt.asm
+	$(ASM) -f elf32 -o x86/gdtasm.o x86/gdt.asm

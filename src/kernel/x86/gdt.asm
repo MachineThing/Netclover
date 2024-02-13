@@ -1,5 +1,6 @@
 bits 32
 global gdt_flush
+global tss_flush
 
 gdt_flush:
     mov eax, [esp+4]
@@ -15,4 +16,9 @@ gdt_flush:
 
     jmp 0x08:.flush
 .flush:
+    ret
+
+tss_flush:
+    mov ax, 0x2b
+    ltr ax          ; Load task register
     ret

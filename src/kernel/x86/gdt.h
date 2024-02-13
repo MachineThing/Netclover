@@ -20,6 +20,46 @@ struct gdt_ptr_struct {
     unsigned int    base;
 } __attribute__((packed));
 
+struct tss_entry_struct {
+    // https://wiki.osdev.org/Task_State_Segment#Protected_Mode
+    uint32_t link;      // Previous Task Link Field
+    // Segment Selectors and Stack Pointers
+    uint32_t esp0;
+    uint32_t ss0;
+    uint32_t esp1;
+    uint32_t ss1;
+    uint32_t esp2;
+    uint32_t ss2;
+    uint32_t cr3;
+
+    // Special Registers
+    uint32_t eip;       // Instruction Pointer
+    uint32_t eflags;    // EFLAGS Register
+
+    // General Purpose Registers
+    uint32_t eax;
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t ebx;
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t esi;
+    uint32_t edi;
+
+    // Segment Registers
+    uint32_t es;
+    uint32_t cs;
+    uint32_t ss;
+    uint32_t ds;
+    uint32_t fs;
+    uint32_t gs;
+
+    // Special Registers
+    uint32_t ldtr;      // Local Descriptor Table Pointer
+    uint32_t iopb;      // I/O Map Base Address Field
+    uint32_t ssp;       // Shadow Stack Pointer
+} __attribute__((packed));
+
 #define GDT_ACCESS_PRESENT  0x80 // 1000 0000
 #define GDT_ACCESS_RING0    0x00 // 0000 0000
 #define GDT_ACCESS_RING1    0x20 // 0010 0000
@@ -33,5 +73,6 @@ struct gdt_ptr_struct {
 
 void initGDT();
 void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t granularity);
+void writeTSS(uint32_t num, uint16_t ss0, uint32_t esp0);
 
 #endif

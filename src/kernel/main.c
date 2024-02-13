@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "libs/stdio.h"
-#include "gdt.h"
+#include "x86/gdt.h"
 
 int main(uint16_t bootDrive) {
     initGDT();
