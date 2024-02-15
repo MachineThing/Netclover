@@ -3,10 +3,10 @@ include ../../config.mk
 SRCFILES=	$(wildcard *.c)
 OBJFILES=	$(SRCFILES:.c=.o)
 
-all: $(OBJFILES) x86.o
+all: $(OBJFILES) io.o
 
-x86.o: x86.asm
-	$(ASM) -f elf32 -o x86.o x86.asm
+io.o: io.asm
+	$(ASM) -f elf32 -o io.o io.asm
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
