@@ -2,20 +2,15 @@ include ../config.mk
 
 MAIN=		main.o
 
-LIBDIR=		libs
 LIBSRC=		$(wildcard ./$(LIBDIR)/*.c) $(wildcard ./$(LIBDIR)/*.asm)
-LIBOBJ=		$(addsuffix .o, $(basename $(LIBSRC)))
 
 all: kernel.bin
 
 kernel.bin: $(MAIN) x86/gdt.o x86/gdtasm.o x86/idt.o x86/idtasm.o
-	$(LD) $(LDFLAGS) -Tlinker.ld -o kernel.bin $(MAIN) $(LIBOBJ) x86/gdt.o x86/gdtasm.o x86/idt.o x86/idtasm.o
+	$(LD) $(LDFLAGS) -Tlinker.ld -o kernel.bin $(MAIN) $(LIBC) x86/gdt.o x86/gdtasm.o x86/idt.o x86/idtasm.o -lc
 
-$(MAIN): main.c $(LIBOBJ)
+$(MAIN): main.c $(LIBC)
 	$(CC) $(CFLAGS) -c main.c -o $(MAIN)
-
-$(LIBOBJ): $(LIBSRC)
-	make -C $(LIBDIR)
 
 x86/gdt.o: x86/gdt.c
 	$(CC) $(CFLAGS) -c x86/gdt.c -o x86/gdt.o

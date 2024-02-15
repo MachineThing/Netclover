@@ -1,11 +1,12 @@
 #include <stdint.h>
-#include "libs/stdio.h"
+#include <stdio.h>
+#include <string.h>
+
 #include "libs/logger.h"
 #include "libs/disk.h"
 #include "libs/fat.h"
 #include "libs/x86.h"
 #include "libs/memdefs.h"
-#include "libs/string.h"
 
 const char logid[8] = "stage2";
 

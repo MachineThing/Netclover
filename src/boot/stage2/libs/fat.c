@@ -1,12 +1,12 @@
 #include <stddef.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <netclover/minmax.h>
 
 #include "fat.h"
-#include "stdio.h"
-#include "ctype.h"
 #include "logger.h"
-#include "string.h"
 #include "memdefs.h"
-#include "minmax.h"
 
 const char fatlogid[8] = "filesys";
 

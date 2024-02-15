@@ -1,4 +1,4 @@
-#include "../libs/string.h"
+#include <string.h>
 #include "gdt.h"
 
 extern void gdt_flush(uint32_t addr);

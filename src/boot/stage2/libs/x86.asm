@@ -59,28 +59,12 @@ bits 32
     and %3, 0xf
 %endmacro
 
-bits 32
-
-global outb
-global inb
 global diskReset16
 global diskRead16
 global diskGetDriveParams16
 global getVendorId
 
 extern boot_disk_reset
-
-outb:
-    mov dx, [esp + 4]
-    mov al, [esp + 8]
-    out dx, al
-    ret
-
-inb:
-    mov dx, [esp + 4]
-    xor eax, eax
-    in al, dx
-    ret
 
 ;uint16_t __attribute__((cdecl)) diskReset16(int8_t drive);
 diskReset16:

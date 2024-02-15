@@ -2,11 +2,11 @@ OUTPUT_FORMAT("binary")
 
 SECTIONS {
     . = 0x7c00;
-    .text :
+    .text_boot :
     {
         boot.o(.text)
     }
-    .data :
+    .data_boot :
     {
         boot.o(.data)
     }

@@ -1,6 +1,6 @@
 #include <stdarg.h>
+#include <stdio.h>
 
-#include "stdio.h"
 #include "logger.h"
 
 void log(enum LogLevel level, const char* service, const char* format, ...) {

@@ -1,6 +1,6 @@
+#include <stdio.h>
 #include "disk.h"
 #include "x86.h"
-#include "stdio.h"
 #include "logger.h"
 
 const char disklogid[8] = "disk";

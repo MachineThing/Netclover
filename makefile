@@ -30,12 +30,16 @@ $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))
 	mcopy -i $(FLPIMG) $(KERNEL) ::kernel.bin
 
 # Kernel
-$(KERNEL): $(call DIRFILES $(KERNELDIR))
+$(KERNEL): $(call DIRFILES $(KERNELDIR)) $(LIBC)
 	make -C $(KERNELDIR)
 
 # Bootloader
-$(BOOT): $(call DIRFILES $(BOOTDIR))
+$(BOOT): $(call DIRFILES $(BOOTDIR)) $(LIBC)
 	make -C $(BOOTDIR)
+
+# LIBC
+$(LIBC): $(call DIRFILES $(LIBDIR))
+	make -C $(LIBDIR)
 
 # Clean
 clean:

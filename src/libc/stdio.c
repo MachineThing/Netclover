@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "x86.h"
+#include "netclover/io.h"
 
 const unsigned SCREEN_WIDTH = 80;
 const unsigned SCREEN_HEIGHT = 25;

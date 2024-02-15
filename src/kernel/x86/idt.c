@@ -1,6 +1,6 @@
-#include "../libs/stdio.h"
-#include "../libs/string.h"
-#include "../libs/io.h"
+#include <stdio.h>
+#include <string.h>
+#include <netclover/io.h>
 
 #include "idt.h"
 
