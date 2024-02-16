@@ -1,6 +1,4 @@
-int min(int a, int b) {
-    return (a < b) ? a : b;
-}
+#include <netclover/minmax.h>
 
 int max(int a, int b) {
     return (a > b) ? a : b;

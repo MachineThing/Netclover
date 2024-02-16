@@ -1,15 +1,16 @@
 include ../config.mk
 
-SRCFILES=	$(wildcard **/*.c) $(wildcard *.c)
-OBJFILES=	$(SRCFILES:.c=.o)
+CFILES=		$(shell find . -type f -name '*.c')
+ASMFILES=	$(shell find . -type f -name '*.asm')
+OBJFILES=	$(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 
 all: libc.o
 
-libc.o: $(OBJFILES) netclover/io.o
-	$(TARGET)-ar rcs libc.a $(OBJFILES) netclover/io.o
+libc.o: $(OBJFILES)
+	$(TARGET)-ar rcs libc.a $(OBJFILES)
 
-netclover/io.o: netclover/io.asm
-	$(ASM) -f elf32 -o netclover/io.o netclover/io.asm
+%.o: %.asm
+	$(ASM) -f elf32 -o $@ $<
 
 %.o: %.c
-	$(CC) $(CFLAGS) -fdata-sections -ffunction-sections -c $< -o $@
+	$(CC) $(CFLAGS) -fdata-sections -ffunction-sections -Wl,--gc-sections -c $< -o $@

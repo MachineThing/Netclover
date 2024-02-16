@@ -45,4 +45,5 @@ $(LIBC): $(call DIRFILES $(LIBDIR))
 clean:
 	find . -name "*.bin" -type f -delete
 	find . -name "*.o" -type f -delete
+	find . -name "*.a" -type f -delete
 	rm -rf $(FLPIMG)

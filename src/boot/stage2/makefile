@@ -11,10 +11,10 @@ BOOTOBJ=	../boot.o
 all: stage2.bin
 
 stage2.bin: $(INIT) $(MAIN) $(BOOTOBJ)
-	$(LD) $(LDFLAGS) -Tlinker.ld -e _start -r -o stage2.bin $(INIT) $(MAIN) $(LIBOBJ) -lc
+	$(LD) $(LDFLAGS) --gc-sections -Tlinker.ld -e _start -r -o stage2.bin $(INIT) $(MAIN) $(LIBOBJ)
 
 $(MAIN): main.c $(LIBOBJ)
-	$(CC) $(CFLAGS) -c main.c -o $(MAIN)
+	$(CC) $(CFLAGS) -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -c main.c -o $(MAIN)
 
 $(INIT): init.asm
 	$(ASM) -f elf32 -o $(INIT) init.asm

@@ -10,7 +10,7 @@ QEMU:=		qemu-system-x86_64
 
 TARGET:=	i686-elf
 CC:=		$(TARGET)-gcc
-CFLAGS:=	-ffreestanding -nostdlib -lgcc -I$(LIBDIR) -L$(LIBDIR) -lc
+CFLAGS:=	-ffreestanding -nostdlib -lgcc -I$(LIBDIR)/headers -L$(LIBDIR) -lc
 ASM:=		nasm
 #ASMFLAGS=	-f elf
 

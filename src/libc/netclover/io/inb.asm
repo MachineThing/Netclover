@@ -1,14 +1,5 @@
 bits 32
-
-global outb
 global inb
-global garbage
-
-outb:
-    mov dx, [esp + 4]   ; Port
-    mov al, [esp + 8]   ; Value
-    out dx, al
-    ret
 
 inb:
     mov dx, [esp + 4]   ; Port

@@ -8,7 +8,7 @@ BOOTBIN=	boot.bin
 all: $(BOOTBIN)
 
 $(BOOTBIN): $(BOOTOBJ) $(STAGE2) $(LIBC)
-	$(LD) $(LDFLAGS) -Tlinker.ld -o $(BOOTBIN) $(BOOTOBJ) $(STAGE2) -lc
+	$(LD) $(LDFLAGS) --gc-sections -Tlinker.ld -o $(BOOTBIN) $(BOOTOBJ) $(STAGE2) -lc
 
 $(BOOTOBJ): boot.asm
 	$(ASM) -f elf32 -g -o $(BOOTOBJ) boot.asm
