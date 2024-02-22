@@ -41,6 +41,10 @@ void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector, uint8_t attribu
 
 void isr_handler(struct InterruptRegisters* regs);
 
+void irq_install_handler(int irq, void (*handler)(struct InterruptRegisters* regs));
+void irq_uninstall_handler(int irq);
+void irq_handler(struct InterruptRegisters* regs);
+
 // Note: bit 8 is set for present bit
 
 #define IDT_ATTRIBUTE_TASK      0x85 // 1000 0101
