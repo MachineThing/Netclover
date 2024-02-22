@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <netclover/io.h>
 
 #include "../../x86/idt.h"
 #include "pit.h"
