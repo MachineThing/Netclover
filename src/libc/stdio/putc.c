@@ -38,6 +38,15 @@ void putc(char chr) {
                 putc(' ');
             break;
 
+        case '\b':
+            if (screenX == 0) {
+                screenX = SCREEN_WIDTH-1;
+                screenY--;
+            } else {
+                screenX--;
+            }
+            putchr(screenX, screenY, ' ');
+            break;
         default:
             putchr(screenX, screenY, chr);
             screenX++;
