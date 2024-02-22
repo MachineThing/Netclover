@@ -17,6 +17,15 @@ bits 32
         jmp isr_common_stub
 %endmacro
 
+%macro IRQ 2
+    global isq%1
+    isq%1:
+        cli
+        push long 0
+        push long %2
+        jmp isq_common_stub
+%endmacro
+
 global idt_flush
 idt_flush:
     mov eax, [esp+4]
@@ -56,10 +65,31 @@ ISR_NOCODE  28          ; Hypervisor Injection Exception
 ISR_NOCODE  29          ; VMM Communication Exception
 ISR_NOCODE  30          ; Security Exception
 ISR_NOCODE  31          ; Reserved
+
+IRQ 0, 32
+IRQ 1, 33
+IRQ 2, 34
+IRQ 3, 35
+IRQ 4, 36
+IRQ 5, 37
+IRQ 6, 38
+IRQ 7, 39
+IRQ 8, 40
+IRQ 9, 41
+IRQ 10, 42
+IRQ 11, 43
+IRQ 12, 44
+IRQ 13, 45
+IRQ 14, 46
+IRQ 15, 47
+IRQ 16, 48
+
 ISR_NOCODE  127
 ISR_NOCODE  128
 
 extern isr_handler
+extern irq_handler
+
 isr_common_stub:
     pusha
     mov eax, ds
@@ -75,6 +105,34 @@ isr_common_stub:
 
     push esp
     call isr_handler
+
+    ADD esp, 8
+    pop ebx
+    mov ds, bx
+    mov es, bx
+    mov fs, bx
+    mov gs, bx
+
+    popa
+    add esp, 8
+    sti
+    iret
+
+isq_common_stub:
+    pusha
+    mov eax, ds
+    push eax
+    mov eax, cr2
+    push eax
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp
+    call irq_handler
 
     ADD esp, 8
     pop ebx

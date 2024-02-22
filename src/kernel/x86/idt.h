@@ -85,6 +85,23 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
+extern void isq0();
+extern void isq1();
+extern void isq2();
+extern void isq3();
+extern void isq4();
+extern void isq5();
+extern void isq6();
+extern void isq7();
+extern void isq8();
+extern void isq9();
+extern void isq10();
+extern void isq11();
+extern void isq12();
+extern void isq13();
+extern void isq14();
+extern void isq15();
+
 extern void isr127();
 extern void isr128();
 

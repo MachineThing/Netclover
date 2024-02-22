@@ -20,7 +20,7 @@ void initIDT() {
     idt_ptr.limit = sizeof(struct idt_entry_struct) * total_entries - 1;
     idt_ptr.offset = (uint32_t)&idt_entries;
 
-    memset(&idt_entries, 0, sizeof(struct idt_entry_struct) * 256);
+    memset(&idt_entries, 0, sizeof(struct idt_entry_struct) * total_entries);
 
     // Initialize Programmable Interrupt Controllers (PIC)
     uint8_t maskM = inb(MASTER_DATA);
@@ -41,6 +41,7 @@ void initIDT() {
     outb(MASTER_DATA, maskM);    // Restore saved masks
     outb(SLAVE_DATA, maskS);
 
+    // Exceptions
     setIDTGate(0, (uint32_t)isr0, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
     setIDTGate(1, (uint32_t)isr1, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
     setIDTGate(2, (uint32_t)isr2, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
@@ -73,6 +74,24 @@ void initIDT() {
     setIDTGate(29, (uint32_t)isr29, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
     setIDTGate(30, (uint32_t)isr30, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
     setIDTGate(31, (uint32_t)isr31, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+
+    // IRQs
+    setIDTGate(32, (uint32_t)isq0, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(33, (uint32_t)isq1, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(34, (uint32_t)isq2, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(35, (uint32_t)isq3, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(36, (uint32_t)isq4, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(37, (uint32_t)isq5, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(38, (uint32_t)isq6, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(39, (uint32_t)isq7, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(40, (uint32_t)isq8, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(41, (uint32_t)isq9, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(42, (uint32_t)isq10, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(43, (uint32_t)isq11, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(44, (uint32_t)isq12, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(45, (uint32_t)isq13, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(46, (uint32_t)isq14, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(47, (uint32_t)isq15, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
     
     // System Calls
     setIDTGate(127, (uint32_t)isr127, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
@@ -126,6 +145,34 @@ unsigned char* exception_messages[] = {
 
 void isr_handler(struct InterruptRegisters* regs) {
     if (regs->int_no < 32) {
-        printf("Interrupt! \"%s\"\n", exception_messages[regs->int_no]);
+        printf("\nInterrupt! \"%s\" err: 0x%x\n", exception_messages[regs->int_no], regs->err_no);
+        printf("Machine halted");
+        for (;;);
     }
+}
+
+void* irq_routines[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+void irq_install_handler(int irq, void (*handler)(struct InterruptRegisters* regs)) {
+    irq_routines[irq] = handler;
+}
+
+void irq_uninstall_handler(int irq) {
+    irq_routines[irq] = 0;
+}
+
+void irq_handler(struct InterruptRegisters* regs) {
+    void (*handler)(struct InterruptRegisters *regs);
+
+    handler = irq_routines[regs->int_no - 32];
+
+    if (handler) {
+        handler(regs);
+    }
+
+    if (regs->int_no >= 40) {
+        outb(SLAVE_COMMS, 0x20);
+    }
+
+    outb(MASTER_COMMS, 0x20);
 }
