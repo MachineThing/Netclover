@@ -63,6 +63,7 @@ global diskReset16
 global diskRead16
 global diskGetDriveParams16
 global getVendorId
+global E820NextBlock
 
 extern boot_disk_reset
 
@@ -209,5 +210,54 @@ getVendorId:
     pop ebx
     pop ecx
     pop edx
+    restoreCallFrame
+    ret
+
+E820Signature equ 0x534D4150                    ; "SMAP" Signature
+
+E820NextBlock:
+    bits 32
+    newCallFrame
+    enterRealMode
+    bits 16
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+    push ds
+    push es
+
+    LinearToSegOffset [bp + 8], es, edi, di     ; ES:DI - Buffer pointer
+    LinearToSegOffset [bp + 12], ds, esi, si    ; EBX   - Continuation Pointer
+    mov ebx, ds:[si]
+
+    mov eax, 0xE820                             ; EAX   - Function
+    mov edx, E820Signature                      ; EDX   - Signature
+    mov ecx, 24                                 ; ECX   - Size of structure
+
+    int 15h
+
+    ; Check for signature
+    jc .error                                   ; Failed if carry is set
+    cmp eax, E820Signature                      ; Failed if no signature
+    jne .error
+    ; Success
+    mov eax, ecx                                ; Return size
+    mov ds:[si], ebx                            ; Continuation
+    jmp .ending
+
+.error:
+    mov eax, -1
+.ending:
+    pop es
+    pop ds
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    enterProtectedMode
+    bits 32
     restoreCallFrame
     ret

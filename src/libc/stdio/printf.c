@@ -17,11 +17,45 @@
 #define PRINTF_LENGTH_LONG          3
 #define PRINTF_LENGTH_LONG_LONG     4
 
-void printf_unsigned(unsigned long number, int radix) {
+unsigned long long __udivdi3(unsigned long long a, unsigned long long b) {
+    unsigned long long quotient = 0;
+    unsigned long long remainder = 0;
+    unsigned long long divisor = b;
+
+    // Perform long division
+    for (int i = 63; i >= 0; i--) {
+        remainder <<= 1;
+        remainder |= (a >> i) & 1;
+        if (remainder >= divisor) {
+            remainder -= divisor;
+            quotient |= (1ULL << i);
+        }
+    }
+
+    return quotient;
+}
+
+unsigned long long __umoddi3(unsigned long long a, unsigned long long b) {
+    unsigned long long remainder = 0;
+    unsigned long long divisor = b;
+
+    // Perform long division
+    for (int i = 63; i >= 0; i--) {
+        remainder <<= 1;
+        remainder |= (a >> i) & 1;
+        if (remainder >= divisor) {
+            remainder -= divisor;
+        }
+    }
+
+    return remainder;
+}
+
+void printf_unsigned(unsigned long long number, int radix) {
     char buffer[32];
     int pos = 0;
     do {
-        unsigned long rem = number % radix;
+        unsigned long long rem = number % radix;
         number /= radix;
         buffer[pos++] = "0123456789abcdef"[rem];
     } while (number > 0);
@@ -31,7 +65,7 @@ void printf_unsigned(unsigned long number, int radix) {
     }
 }
 
-void printf_signed(long number, int radix) {
+void printf_signed(long long number, int radix) {
     if (number < 0) {
         putc('-');
         printf_unsigned(-number, radix);
@@ -123,8 +157,10 @@ void printf(const char* format, ...) {
                             case PRINTF_LENGTH_DEFAULT:     printf_signed(va_arg(args, int), radix);
                                                             break;
 
-                            case PRINTF_LENGTH_LONG:        
-                            case PRINTF_LENGTH_LONG_LONG:   printf_signed(va_arg(args, long), radix);
+                            case PRINTF_LENGTH_LONG:        printf_signed(va_arg(args, long), radix);
+                                                            break;
+
+                            case PRINTF_LENGTH_LONG_LONG:   printf_signed(va_arg(args, long long), radix);
                                                             break;
                             
                         }
@@ -132,11 +168,13 @@ void printf(const char* format, ...) {
                         switch (length) {
                             case PRINTF_LENGTH_SHORT_SHORT:
                             case PRINTF_LENGTH_SHORT:
-                            case PRINTF_LENGTH_DEFAULT:     printf_unsigned(va_arg(args, int), radix);
+                            case PRINTF_LENGTH_DEFAULT:     printf_unsigned(va_arg(args, unsigned int), radix);
                                                             break;
 
-                            case PRINTF_LENGTH_LONG:        
-                            case PRINTF_LENGTH_LONG_LONG:   printf_unsigned(va_arg(args, long), radix);
+                            case PRINTF_LENGTH_LONG:        printf_unsigned(va_arg(args, unsigned long), radix);
+                                                            break;
+                                                            
+                            case PRINTF_LENGTH_LONG_LONG:   printf_unsigned(va_arg(args, unsigned long long), radix);
                                                             break;
                         }
                     }
@@ -146,6 +184,7 @@ void printf(const char* format, ...) {
                 length = PRINTF_LENGTH_DEFAULT;
                 radix = 10;
                 sign = false;
+                number = false;
                 break;
         }
         format++;

@@ -1,3 +1,4 @@
+#include <netclover/bootutil.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +8,7 @@
 #include "libs/fat.h"
 #include "libs/x86.h"
 #include "libs/memdefs.h"
+#include "libs/memdetect.h"
 
 const char logid[8] = "stage2";
 
@@ -38,6 +40,14 @@ int cmain(uint16_t bootDrive) {
         log(LOG_CRITICAL, logid, "Failed to initialize FAT.");
         return 1;
     }
+
+    // Prepare boot params
+    bootParamsStruct bootParams;
+    bootParams.BootDevice = bootDrive;
+    MemDetect(&bootParams.Memory);
+    
+    // Break
+    for (;;);
 
     FAT_File* kernelfd = FAT_Open(&disk, "/kernel.bin");
     uint32_t read;
