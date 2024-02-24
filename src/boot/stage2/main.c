@@ -12,9 +12,11 @@
 
 const char logid[8] = "stage2";
 
-typedef void (*kernelExe)();
+typedef void (*kernelExe)(bootParamsStruct* bootParams);
 uint8_t* memLoadBuffer = (uint8_t*)MEMORY_LOAD_KERNEL;
 uint8_t* memKernel = (uint8_t*)MEMORY_KERNEL_ADDR;
+
+bootParamsStruct bootParams;
 
 int cmain(uint16_t bootDrive) {
     clrscr();
@@ -42,12 +44,8 @@ int cmain(uint16_t bootDrive) {
     }
 
     // Prepare boot params
-    bootParamsStruct bootParams;
     bootParams.BootDevice = bootDrive;
     MemDetect(&bootParams.Memory);
-    
-    // Break
-    for (;;);
 
     FAT_File* kernelfd = FAT_Open(&disk, "/kernel.bin");
     uint32_t read;
@@ -61,7 +59,7 @@ int cmain(uint16_t bootDrive) {
     FAT_Close(kernelfd);
     kernelExe kernelStart = (kernelExe)memKernel;
     
-    kernelStart(bootDrive);
+    kernelStart(&bootParams);
 
     return 0;
 }

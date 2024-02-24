@@ -1,11 +1,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <netclover/io.h>
+#include <netclover/bootutil.h>
 #include "x86/gdt.h"
 #include "x86/idt.h"
 #include "drivers/keyboard/keyboard.h"
 
-int main(uint16_t bootDrive) {
+int main(bootParamsStruct* bootParams) {
     initGDT();
     initIDT();
     clrscr();
