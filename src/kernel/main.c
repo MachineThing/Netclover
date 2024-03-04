@@ -11,7 +11,7 @@ int main(bootParamsStruct* bootParams) {
     initIDT();
     clrscr();
 
-    printf("Hello world from the kernel!\n");
+    printf("Hello world from the kernel! Boot drive is 0x%x\n", bootParams->BootDevice);
     initKeyboard();
     for (;;);
     return 0;
