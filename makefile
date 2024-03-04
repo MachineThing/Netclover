@@ -16,7 +16,7 @@ bochs: $(FLPIMG)
 	bochs -f bochs_config -q
 
 run: $(FLPIMG)
-	$(QEMU) -fda $(FLPIMG)
+	$(QEMU) -fda $(FLPIMG) -smp 1 -d cpu_reset -D qemu.log
 
 # Floppy image
 $(FLPIMG): $(BOOT) $(KERNEL) $(call DIRFILES $(STATICDIR))

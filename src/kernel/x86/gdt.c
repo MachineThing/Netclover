@@ -33,7 +33,8 @@ void initGDT() {
     writeTSS(5, 0x10, 0);
 
     gdt_flush((uint32_t)&gdt_ptr);
-    tss_flush();
+    // TODO: Implement Interrupt Stack Table
+    //tss_flush();
 }
 
 void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t granularity) {

@@ -334,7 +334,7 @@ g_GDT:
             dw 0                                    ; Base (bits 0-15) = 0x0
             db 0                                    ; Base (bits 16-23)
             db 10011010b                            ; Access (present, ring 0, code segment, executable, direction 0, readable) + access bit
-            db 11001111b                            ; Granularity (4k pages, 32-bit mode, no longmode, reserved) + limit (bits 16-19)
+            db 11001111b                            ; Flags (4k pages, 32-bit mode, no longmode, reserved) + limit (bits 16-19)
             db 0                                    ; Base high
 
             ; 32-bit data segment
@@ -342,7 +342,7 @@ g_GDT:
             dw 0                                    ; Base (bits 0-15) = 0x0
             db 0                                    ; Base (bits 16-23)
             db 10010010b                            ; Access (present, ring 0, data segment, executable, direction 0, writeable) + access bit
-            db 11001111b                            ; Granularity (4k pages, 32-bit mode, no longmode, reserved) + limit (bits 16-19)
+            db 11001111b                            ; Flags (4k pages, 32-bit mode, no longmode, reserved) + limit (bits 16-19)
             db 0                                    ; Base high
 
             ; 16-bit code segment
@@ -350,7 +350,7 @@ g_GDT:
             dw 0                                    ; Base (bits 0-15) = 0x0
             db 0                                    ; Base (bits 16-23)
             db 10011010b                            ; Access (present, ring 0, code segment, executable, direction 0, readable) + access bit
-            db 00001111b                            ; Granularity (1b pages, 16-bit mode, no longmode, reserved) + limit (bits 16-19)
+            db 00001111b                            ; Flags (1b pages, 16-bit mode, no longmode, reserved) + limit (bits 16-19)
             db 0                                    ; Base high
 
             ; 16-bit data segment
@@ -358,7 +358,23 @@ g_GDT:
             dw 0                                    ; Base (bits 0-15) = 0x0
             db 0                                    ; Base (bits 16-23)
             db 10010010b                            ; Access (present, ring 0, data segment, executable, direction 0, readable) + access bit
-            db 00001111b                            ; Granularity (1b pages, 16-bit mode, no longmode, reserved) + limit (bits 16-19)
+            db 00001111b                            ; Flags (1b pages, 16-bit mode, no longmode, reserved) + limit (bits 16-19)
+            db 0                                    ; Base high
+
+            ; 64-bit code segment
+            dw 0FFFFh                               ; Limit (bits 0-15) = 0xFFFF for full 32-bit range
+            dw 0                                    ; Base (bits 0-15) = 0x0
+            db 0                                    ; Base (bits 16-23)
+            db 10011010b                            ; Access (present, ring 0, code segment, executable, direction 0, readable) + access bit
+            db 10101111b                            ; Flags (4k pages, 32-bit mode, no longmode, reserved) + limit (bits 16-19)
+            db 0                                    ; Base high
+
+            ; 64-bit data segment
+            dw 0FFFFh                               ; Limit (bits 0-15) = 0xFFFF for full 32-bit range
+            dw 0                                    ; Base (bits 0-15) = 0x0
+            db 0                                    ; Base (bits 16-23)
+            db 10010010b                            ; Access (present, ring 0, data segment, executable, direction 0, writeable) + access bit
+            db 10101111b                            ; Flags (4k pages, 32-bit mode, no longmode, reserved) + limit (bits 16-19)
             db 0                                    ; Base high
 
 g_GDTDesc:
