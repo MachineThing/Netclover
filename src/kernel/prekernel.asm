@@ -5,32 +5,35 @@ extern main
 
 section .kinit
 kinit:
-    xchg bx, bx
-
     ; Setup basic paging
-    mov eax, (init_page_dir - 0xC0000000)
+    mov eax, (init_page_dir_tab - 0xC0000000)   ; Location in phys memory
     mov cr3, eax
 
     ; Enable PAE
     mov edx, cr4
-    or edx, (1 << 4)
+    or edx, (1 << 5)
     mov cr4, edx
 
     ; Enable paging
     mov ebx, cr0
     or ebx, (1 << 31)
     mov cr0, ebx
+    xchg bx, bx
 
     jmp main
 
 section .data
+align 32
+init_page_dir_tab:
+; Note: We subtract $$ from the directory pointer
+; and add $$ to it later so it can be logical or'ed
+; Not doing the above will result in the assembler complaining
+dq ((init_page_dir-$$-0xC0000000) | 1) + $$     ; 0x0
+dq 0
+dq 0
+dq ((init_page_dir-$$-0xC0000000) | 1) + $$     ; 0xC0000000
+
 align 4096
 init_page_dir:
-    dd 10000011b                ; Initial 4mb identity map
-    times 768-1 dd 0            ; Padding
-
-    dd (0 << 22) | 10000011b    ; 0xC0000000
-    dd (1 << 22) | 10000011b
-    dd (2 << 22) | 10000011b
-    dd (3 << 22) | 10000011b
-    times 256-4 dd 0            ; Padding
+dq 10000011b                    ; Initial 4mb identity map
+times 512-1 dq 0
