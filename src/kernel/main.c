@@ -7,10 +7,10 @@
 #include "drivers/keyboard/keyboard.h"
 
 int main(bootParamsStruct* bootParams) {
-    //initGDT();
+    initGDT();
     //initIDT();
-    clrscr();
 
+    clrscr();
     printf("Hello world from the kernel!\n");
     //initKeyboard();
     for (;;);

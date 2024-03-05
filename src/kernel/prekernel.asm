@@ -7,7 +7,6 @@ extern main
 section .kinit
 kinit:
     ; Create temp GDT
-    xchg bx, bx
     lgdt [init_GDTDesc-0xC0000000]
     ; Setup basic paging
     mov eax, (init_page_pml4 - 0xC0000000)   ; Location in phys memory

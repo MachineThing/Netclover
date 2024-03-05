@@ -17,6 +17,8 @@
 #define PRINTF_LENGTH_LONG          3
 #define PRINTF_LENGTH_LONG_LONG     4
 
+#if !defined(__x86_64__)
+// 32 Bit support for long long division
 unsigned long long __udivdi3(unsigned long long a, unsigned long long b) {
     unsigned long long quotient = 0;
     unsigned long long remainder = 0;
@@ -50,6 +52,7 @@ unsigned long long __umoddi3(unsigned long long a, unsigned long long b) {
 
     return remainder;
 }
+#endif
 
 void printf_unsigned(unsigned long long number, int radix) {
     char buffer[32];

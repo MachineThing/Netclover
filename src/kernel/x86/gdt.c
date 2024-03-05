@@ -18,17 +18,17 @@ void initGDT() {
 
     setGDTGate(1, 0, 0xFFFFFFFF,
     GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_TYPE | GDT_ACCESS_EXEC | GDT_ACCESS_RW,
-    0xCF); // Kernel code segment
+    0xAF); // Kernel code segment
     setGDTGate(2, 0, 0xFFFFFFFF,
     GDT_ACCESS_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_TYPE | GDT_ACCESS_RW,
-    0xCF); // Kernel data segment
+    0xAF); // Kernel data segment
 
     setGDTGate(3, 0, 0xFFFFFFFF,
     GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_TYPE | GDT_ACCESS_EXEC | GDT_ACCESS_RW,
-    0xCF); // Userland code segment
+    0xAF); // Userland code segment
     setGDTGate(4, 0, 0xFFFFFFFF,
     GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_TYPE | GDT_ACCESS_RW,
-    0xCF); // Userland data segment
+    0xAF); // Userland data segment
 
     writeTSS(5, 0x10, 0);
 
