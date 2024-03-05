@@ -17,7 +17,7 @@ struct gdt_entry_struct {
 
 struct gdt_ptr_struct {
     uint16_t        limit;
-    unsigned int    base;
+    uint32_t        base;
 } __attribute__((packed));
 
 struct tss_entry_struct {

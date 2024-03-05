@@ -7,7 +7,7 @@
 #include "drivers/keyboard/keyboard.h"
 
 int main(bootParamsStruct* bootParams) {
-    initGDT();
+    //initGDT();
     //initIDT();
     clrscr();
 

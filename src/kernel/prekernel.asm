@@ -29,13 +29,7 @@ kinit:
     or ebx, (1 << 31)
     mov cr0, ebx
 
-    jmp 0x18:testing
-
-section .text
-bits 64
-testing:
-    cli
-    hlt
+    jmp 0x18:main
 
 section .data
 align 32

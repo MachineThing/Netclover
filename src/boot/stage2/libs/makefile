@@ -9,4 +9,4 @@ x86.o: x86.asm
 	$(ASM) -f elf32 -o x86.o x86.asm
 
 %.o: %.c
-	$(CC) $(CFLAGS) -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -c $< -o $@
+	$(CC32) $(CFLAGS32) -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -c $< -o $@

@@ -16,7 +16,7 @@ $(MAIN): main.c $(LIBC)
 	$(CC) $(CFLAGS) -c main.c -o $(MAIN)
 
 %asm.o: %.asm
-	$(ASM) -f elf32 -o $@ $<
+	$(ASM) -f elf64 -o $@ $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
