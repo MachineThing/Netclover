@@ -8,7 +8,7 @@ const char memlogid[8] = "mapper";
 
 void MemDetect(memInfoStruct* memInfo) {
     log(LOG_NORMAL, memlogid, "Getting memory map...");
-    E820BlockStruct memRegions[MAX_REGIONS];
+    E820BlockStruct memRegions[MAX_E820_REGIONS];
     E820BlockStruct block;
     uint32_t continuation = 0;
     int regionCount = 0;
@@ -29,6 +29,7 @@ void MemDetect(memInfoStruct* memInfo) {
     }
 
     // Fill meminfo structure
+    #pragma GCC diagnostic ignored "-Wdangling-pointer="
     memInfo->RegionCount    = regionCount;
     memInfo->Regions        = memRegions;
 }

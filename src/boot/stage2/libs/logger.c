@@ -19,6 +19,8 @@ void log(enum LogLevel level, const char* service, const char* format, ...) {
         case LOG_CRITICAL:
             puts("CRITICAL: ");
             break;
+        default:
+            break;
     }
     va_list args;
     va_start(args, format);

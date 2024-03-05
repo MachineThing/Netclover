@@ -10,11 +10,11 @@ QEMU:=		qemu-system-x86_64
 
 TARGET:=	x86_64-elf
 CC:=		$(TARGET)-gcc
-CFLAGS:=	-ffreestanding -nostdlib -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -I$(LIBDIR)/headers -L$(LIBDIR) -lc
+CFLAGS:=	-Wall -Werror -ffreestanding -nostdlib -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -I$(LIBDIR)/headers -L$(LIBDIR) -lc
 
 TARGET32:=	i686-elf
 CC32:=		$(TARGET32)-gcc
-CFLAGS32:=	-ffreestanding -nostdlib -I$(LIBDIR)/headers -L$(LIBDIR) -lc32
+CFLAGS32:=	-Wall -Werror -ffreestanding -nostdlib -I$(LIBDIR)/headers -L$(LIBDIR) -lc32
 ASM:=		nasm
 #ASMFLAGS=	-f elf
 

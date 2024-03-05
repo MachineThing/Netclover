@@ -147,7 +147,7 @@ FAT_File* FAT_OpenEntry(DISK* disk, FAT_DirectoryEntry* entry) {
     // Setup vars
     FAT_FileData* fd = &fatData->OpenedFiles[handle];
     fd->Public.Handle = handle;
-    fd->Public.IsDirectory = (entry->Attributes & FAT_ATTRIBUTE_DIRECTORY != 0);
+    fd->Public.IsDirectory = ((entry->Attributes & FAT_ATTRIBUTE_DIRECTORY) != 0);
     fd->Public.Position = 0;
     fd->Public.Size = entry->Size;
     fd->FirstCluster = entry->FirstClusterLow + ((uint32_t)entry->FirstClusterHigh << 16);
@@ -196,7 +196,7 @@ FAT_File* FAT_Open(DISK* disk, const char* path) {
         bool canFindFile = FAT_FindFile(disk, current, name, &entry);
         FAT_Close(current);
         if (canFindFile) {
-            if (!isLast && entry.Attributes & FAT_ATTRIBUTE_DIRECTORY == 0) {
+            if (!isLast && (entry.Attributes & FAT_ATTRIBUTE_DIRECTORY) == 0) {
                 log(LOG_ERROR, fatlogid, "%s is not a directory", name);
                 return NULL;
             }

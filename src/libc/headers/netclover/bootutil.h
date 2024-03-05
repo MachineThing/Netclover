@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define MAX_E820_REGIONS 256
+
 typedef struct {
     uint64_t Base;
     uint64_t Length;

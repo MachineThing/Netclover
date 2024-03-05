@@ -12,7 +12,7 @@ struct tss_entry_struct tss_entry;
 
 void initGDT() {
     gdt_ptr.limit = (sizeof(struct gdt_entry_struct) * total_entries) - 1;
-    gdt_ptr.base = (uint32_t)&gdt_entries;
+    gdt_ptr.base = (uint32_t)(uintptr_t)&gdt_entries;
 
     setGDTGate(0, 0, 0, 0, 0); // Null segment
 
@@ -32,7 +32,7 @@ void initGDT() {
 
     writeTSS(5, 0x10, 0);
 
-    gdt_flush((uint32_t)&gdt_ptr);
+    gdt_flush((uint32_t)(uintptr_t)&gdt_ptr);
     // TODO: Implement Interrupt Stack Table
     //tss_flush();
 }
@@ -50,7 +50,7 @@ void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access, uin
 }
 
 void writeTSS(uint32_t num, uint16_t ss0, uint32_t esp0) {
-    uint32_t base = (uint32_t)&tss_entry;
+    uint32_t base = (uint32_t)(uintptr_t)&tss_entry;
     uint32_t limit = base + sizeof(tss_entry);
 
     setGDTGate(num, base, limit,
