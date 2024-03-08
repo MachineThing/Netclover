@@ -30,7 +30,7 @@ void initGDT() {
     GDT_ACCESS_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_TYPE | GDT_ACCESS_RW,
     0xAF); // Userland data segment
 
-    writeTSS(5, 0x10, 0);
+    //writeTSS(5, 0x10, 0);
 
     gdt_flush((uint32_t)(uintptr_t)&gdt_ptr);
     // TODO: Implement Interrupt Stack Table

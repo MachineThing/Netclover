@@ -6,40 +6,39 @@
 struct idt_entry_struct {
     uint16_t offset_low;
     uint16_t selector;
-    uint8_t reserved;
+    uint8_t ist;            // Only first 2 bits are used
     uint8_t attributes;
-    uint16_t offset_high;
+    uint16_t offset_mid;
+    uint32_t offset_high;
+    uint32_t reserved;      // 0
 } __attribute__((packed));
 
 struct idt_ptr_struct {
     uint16_t limit;
-    uint32_t offset;
+    uint64_t offset;
 } __attribute__((packed));
 
 struct InterruptRegisters {
-    uint32_t cr2;
-    uint32_t ds;
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebp;
-    uint32_t esp;
-    uint32_t ebx;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t eax;
-    uint32_t int_no;
-    uint32_t err_no;
-    uint32_t eip;
-    uint32_t csm;
-    uint32_t eflags;
-    uint32_t useresp;
-    uint32_t ss;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rbx;
+    uint64_t rax;
+
+    uint64_t int_no;
+    uint64_t err_no;
+
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
+    // Register stack grows upward
 } __attribute__((packed));
 
 void initIDT();
-void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector, uint8_t attributes);
+void setIDTGate(uint8_t num, void (void_offset)(), uint16_t selector, uint8_t attributes);
 
-void isr_handler(struct InterruptRegisters* regs);
+struct InterruptRegisters* isr_handler(struct InterruptRegisters* regs);
 
 void irq_install_handler(int irq, void (*handler)(struct InterruptRegisters* regs));
 void irq_uninstall_handler(int irq);

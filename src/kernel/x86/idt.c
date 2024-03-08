@@ -14,11 +14,9 @@
 struct idt_entry_struct idt_entries[total_entries];
 struct idt_ptr_struct idt_ptr;
 
-extern void idt_flush(uint32_t addr);
-
 void initIDT() {
     idt_ptr.limit = sizeof(struct idt_entry_struct) * total_entries - 1;
-    idt_ptr.offset = (uint32_t)(uintptr_t)&idt_entries;
+    idt_ptr.offset = (uint64_t)&idt_entries;
 
     memset(&idt_entries, 0, sizeof(struct idt_entry_struct) * total_entries);
 
@@ -42,70 +40,77 @@ void initIDT() {
     outb(SLAVE_DATA, maskS);
 
     // Exceptions
-    setIDTGate(0, (uint32_t)(uintptr_t)isr0, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(1, (uint32_t)(uintptr_t)isr1, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(2, (uint32_t)(uintptr_t)isr2, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(3, (uint32_t)(uintptr_t)isr3, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(4, (uint32_t)(uintptr_t)isr4, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(5, (uint32_t)(uintptr_t)isr5, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(6, (uint32_t)(uintptr_t)isr6, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(7, (uint32_t)(uintptr_t)isr7, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(8, (uint32_t)(uintptr_t)isr8, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(9, (uint32_t)(uintptr_t)isr9, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(10, (uint32_t)(uintptr_t)isr10, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(11, (uint32_t)(uintptr_t)isr11, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(12, (uint32_t)(uintptr_t)isr12, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(13, (uint32_t)(uintptr_t)isr13, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(14, (uint32_t)(uintptr_t)isr14, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(15, (uint32_t)(uintptr_t)isr15, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(16, (uint32_t)(uintptr_t)isr16, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(17, (uint32_t)(uintptr_t)isr17, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(18, (uint32_t)(uintptr_t)isr18, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(19, (uint32_t)(uintptr_t)isr19, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(20, (uint32_t)(uintptr_t)isr20, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(21, (uint32_t)(uintptr_t)isr21, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(22, (uint32_t)(uintptr_t)isr22, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(23, (uint32_t)(uintptr_t)isr23, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(24, (uint32_t)(uintptr_t)isr24, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(25, (uint32_t)(uintptr_t)isr25, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(26, (uint32_t)(uintptr_t)isr26, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(27, (uint32_t)(uintptr_t)isr27, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(28, (uint32_t)(uintptr_t)isr28, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(29, (uint32_t)(uintptr_t)isr29, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(30, (uint32_t)(uintptr_t)isr30, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(31, (uint32_t)(uintptr_t)isr31, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(0, isr0, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(1, isr1, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(2, isr2, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(3, isr3, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(4, isr4, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(5, isr5, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(6, isr6, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(7, isr7, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(8, isr8, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(9, isr9, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(10, isr10, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(11, isr11, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(12, isr12, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(13, isr13, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(14, isr14, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(15, isr15, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(16, isr16, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(17, isr17, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(18, isr18, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(19, isr19, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(20, isr20, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(21, isr21, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(22, isr22, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(23, isr23, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(24, isr24, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(25, isr25, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(26, isr26, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(27, isr27, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(28, isr28, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(29, isr29, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(30, isr30, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(31, isr31, 0x08, IDT_ATTRIBUTE_INTERRUPT);
 
     // IRQs
-    setIDTGate(32, (uint32_t)(uintptr_t)isq0, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(33, (uint32_t)(uintptr_t)isq1, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(34, (uint32_t)(uintptr_t)isq2, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(35, (uint32_t)(uintptr_t)isq3, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(36, (uint32_t)(uintptr_t)isq4, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(37, (uint32_t)(uintptr_t)isq5, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(38, (uint32_t)(uintptr_t)isq6, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(39, (uint32_t)(uintptr_t)isq7, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(40, (uint32_t)(uintptr_t)isq8, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(41, (uint32_t)(uintptr_t)isq9, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(42, (uint32_t)(uintptr_t)isq10, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(43, (uint32_t)(uintptr_t)isq11, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(44, (uint32_t)(uintptr_t)isq12, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(45, (uint32_t)(uintptr_t)isq13, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(46, (uint32_t)(uintptr_t)isq14, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(47, (uint32_t)(uintptr_t)isq15, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(32, isq0, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(33, isq1, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(34, isq2, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(35, isq3, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(36, isq4, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(37, isq5, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(38, isq6, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(39, isq7, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(40, isq8, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(41, isq9, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(42, isq10, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(43, isq11, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(44, isq12, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(45, isq13, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(46, isq14, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(47, isq15, 0x08, IDT_ATTRIBUTE_INTERRUPT);
     
     // System Calls
-    setIDTGate(127, (uint32_t)(uintptr_t)isr127, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
-    setIDTGate(128, (uint32_t)(uintptr_t)isr128, 0x08, IDT_ATTRIBUTE_INTERRUPT | IDT_ATTRIBUTE_RING0);
+    setIDTGate(127, isr127, 0x08, IDT_ATTRIBUTE_INTERRUPT);
+    setIDTGate(128, isr128, 0x08, IDT_ATTRIBUTE_INTERRUPT);
     
-    idt_flush((uint32_t)(uintptr_t)&idt_ptr);
+    __asm__ __volatile__("lidt %0": :"g" (idt_ptr));
+    __asm__ ("sti");
 }
 
-void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector, uint8_t attributes) {
-    idt_entries[num].offset_low = offset & 0xFFFF;
-    idt_entries[num].offset_high = (offset >> 16) & 0xFFFF;
-    idt_entries[num].selector = selector;
-    idt_entries[num].reserved = 0; // Always zero
-    idt_entries[num].attributes = attributes;
+void setIDTGate(uint8_t num, void (void_offset)(), uint16_t selector, uint8_t attributes) {
+    uint64_t offset = (uint64_t)void_offset;
+    
+    struct idt_entry_struct* entry = &idt_entries[num];
+
+    entry->offset_low = (uint16_t)(offset & 0xFFFF);
+    entry->offset_mid = (uint16_t)(offset >> 16);
+    entry->offset_high = (uint32_t)(offset >> 32);
+    entry->ist = 0;
+    entry->selector = selector;
+    entry->reserved = 0; // Always zero
+    entry->attributes = attributes;
 }
 
 char* exception_messages[] = {
@@ -143,12 +148,21 @@ char* exception_messages[] = {
     "Reserved"
 };
 
-void isr_handler(struct InterruptRegisters* regs) {
+struct InterruptRegisters* isr_handler(struct InterruptRegisters* regs) {
     if (regs->int_no < 32) {
         printf("\nInterrupt! \"%s\" err: 0x%x\n", exception_messages[regs->int_no], regs->err_no);
-        printf("Machine halted");
-        for (;;);
+        printf("RAX: 0x%x\n", regs->rax);
+        printf("RBX: 0x%x\n", regs->rbx);
+        printf("RCX: 0x%x\n", regs->rcx);
+        printf("RDX: 0x%x\n", regs->rdx);
+        //printf("RSI: 0x%x\n", regs->rsi);
+        //printf("RDI: 0x%x\n", regs->rdi);
+        //printf("RBP: 0x%x\n", regs->rbp);
+        //printf("RSP: 0x%x\n", regs->rsp);
+        printf("RIP: 0x%x\n", regs->rip);
     }
+    
+    return regs;
 }
 
 void* irq_routines[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};

@@ -48,8 +48,11 @@ times 512-4 dq 0
 
 align 4096
 init_page_dir:
-dq 10000011b                                        ; Initial 4mb identity map
-times 512-1 dq 0
+%assign i 0
+%rep 512
+    dq (i << 21) | 10000011b ; 0xC0000000
+    %assign i i+1
+%endrep
 
 init_GDT:
             dq 0                                                        ; NULL Descriptor

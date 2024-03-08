@@ -6,17 +6,18 @@ gdt_flush:
     lgdt [rdi]      ; gdt_ptr is passed in rdi register
 
     ; Set segments
-    mov rax, 0x10
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
 
-    jmp .flush
-.flush:
-    dw 0x08
-    ret
+    pop rax
+    push 0x8
+    push rax
+
+    retfq          ; Far return (lretq in gas syntax)
 
 tss_flush:
     mov ax, 0x2b

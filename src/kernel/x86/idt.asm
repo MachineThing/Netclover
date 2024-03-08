@@ -1,11 +1,11 @@
-bits 32
+bits 64
 
 %macro ISR_NOCODE 1
     global isr%1
     isr%1:
         cli
-        push long 0
-        push long %1
+        push 0
+        push %1
         jmp isr_common_stub
 %endmacro
 
@@ -13,7 +13,8 @@ bits 32
     global isr%1
     isr%1:
         cli
-        push long %1
+        ; Error code is already on stack
+        push %1
         jmp isr_common_stub
 %endmacro
 
@@ -21,17 +22,10 @@ bits 32
     global isq%1
     isq%1:
         cli
-        push long 0
-        push long %2
-        jmp isq_common_stub
+        push 0
+        push %2
+        jmp irq_common_stub
 %endmacro
-
-global idt_flush
-idt_flush:
-    mov eax, [esp+4]
-    lidt [eax]
-    sti                 ; Enable interrupts
-    ret
 
 ISR_NOCODE  0           ; Division error
 ISR_NOCODE  1           ; Debug
@@ -90,58 +84,38 @@ ISR_NOCODE  128
 extern isr_handler
 extern irq_handler
 
+%macro pushall 0
+    push rax
+    push rbx
+    push rcx
+    push rdx
+%endmacro
+
+%macro popall 0
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+    add rsp, 16         ; Destroys interrupt number and error code
+%endmacro popall
+
 isr_common_stub:
-    pusha
-    mov eax, ds
-    push eax
-    mov eax, cr2
-    push eax
+    pushall
 
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp
+    mov rdi, rsp
+    cld
     call isr_handler
+    mov rsp, rax
 
-    ADD esp, 8
-    pop ebx
-    mov ds, bx
-    mov es, bx
-    mov fs, bx
-    mov gs, bx
+    popall
+    iretq
 
-    popa
-    add esp, 8
-    sti
-    iret
+irq_common_stub:
+    pushall
 
-isq_common_stub:
-    pusha
-    mov eax, ds
-    push eax
-    mov eax, cr2
-    push eax
-
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp
+    mov rdi, rsp
+    cld
     call irq_handler
 
-    ADD esp, 8
-    pop ebx
-    mov ds, bx
-    mov es, bx
-    mov fs, bx
-    mov gs, bx
-
-    popa
-    add esp, 8
-    sti
-    iret
+    popall
+    iretq
