@@ -14,7 +14,7 @@ CFLAGS:=	-Wall -Werror -ffreestanding -nostdlib -mcmodel=large -mno-red-zone -mn
 
 TARGET32:=	i686-elf
 CC32:=		$(TARGET32)-gcc
-CFLAGS32:=	-Wall -Werror -ffreestanding -nostdlib -I$(LIBDIR)/headers -L$(LIBDIR) -lc32
+CFLAGS32:=	-Wall -Werror -ffreestanding -nostdlib -I$(LIBDIR)/headers -L$(LIBDIR) -lbootc
 ASM:=		nasm
 #ASMFLAGS=	-f elf
 

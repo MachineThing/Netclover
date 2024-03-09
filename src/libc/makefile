@@ -11,7 +11,7 @@ libc.o: $(OBJFILES)
 	$(TARGET)-ar rcs libc.a $(OBJFILES)
 
 libc32.o: $(OBJFILES32)
-	$(TARGET32)-ar rcs libc32.a $(OBJFILES32)
+	$(TARGET32)-ar rcs libbootc.a $(OBJFILES32)
 
 %.o: %.asm
 	$(ASM) -f elf64 -o $@ $<

@@ -255,6 +255,7 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
         byteCount = min(byteCount, fd->Public.Size - fd->Public.Position);
     }
 
+    uint32_t maxSector = 0;
     while (byteCount > 0) {
         uint32_t leftInBuffer = SECTOR_SIZE - (fd->Public.Position % SECTOR_SIZE);
         uint32_t take = min(byteCount, leftInBuffer);
@@ -270,7 +271,7 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
                 if (DISK_ReadSectors(disk, fd->CurrentCluster, 1, fd->Buffer) != 0) {
                     log(LOG_ERROR, fatlogid, "Read error on take!");
                     break;
-                } 
+                }
             } else {
                 if (++fd->CurrentSectorInCluster >= bootSector.SectorsPerCluster) {
                     fd->CurrentSectorInCluster = 0;
@@ -283,10 +284,18 @@ uint32_t FAT_Read(DISK* disk, FAT_File* file, uint32_t byteCount, void* dataOut)
                     break;
                 }
 
+                if (maxSector == 0) {
+                    maxSector = byteCount/SECTOR_SIZE;
+                }
+
                 // Read next sector
                 if (DISK_ReadSectors(disk, FAT_ClusterToLba(fd->CurrentCluster) + fd->CurrentSectorInCluster, 1, fd->Buffer) != 0) {
                     log(LOG_ERROR, fatlogid, "Read error!");
                     break;
+                } else {
+                    // Loading bar
+                    uint32_t tval = 79*(maxSector-byteCount/SECTOR_SIZE)/maxSector;
+                    putchr(tval, 24, 0xDB); // Block character
                 }
             }
         }
