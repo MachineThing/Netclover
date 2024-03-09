@@ -28,7 +28,24 @@ kinit:
     or ebx, (1 << 31)
     mov cr0, ebx
 
+    ; Initialize stack (Save some values as well)
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    xchg bx, bx
+    mov esp, stack_top
+    push edx
+    push ecx
+    push ebx
+    push eax
+
     jmp 0x18:main
+
+section .bss
+stack_top:
+resb 8388608 ; 8 Mebibytes
+stack_bottom:
 
 section .data
 align 32
