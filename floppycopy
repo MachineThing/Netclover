@@ -8,8 +8,8 @@ fi
 
 function write_floppy {
 # Check serial and label
-serial=$(sudo dd if=/dev/$selected_drive bs=1 skip=38 count=4 status=none | xxd -p)
-if [ "$serial" != "29031721" ]; then
+serial=$(sudo dd if=/dev/$selected_drive bs=1 skip=39 count=4 status=none | xxd -p)
+if [ "$serial" != "03172004" ]; then
     while true; do
         read -p "Serial not matching, are you sure you want to write to \"/dev/$selected_drive\"? THIS WILL OVERWRITE DATA! (Y/n)" answer
         case "$answer" in
