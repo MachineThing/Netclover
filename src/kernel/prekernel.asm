@@ -33,7 +33,6 @@ kinit:
     pop ebx
     pop ecx
     pop edx
-    xchg bx, bx
     mov esp, stack_top
     push edx
     push ecx
