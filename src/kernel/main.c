@@ -13,6 +13,12 @@ int main(bootParamsStruct* bootParams) {
     initIDT();
     initPaging();
 
+    printf("Boot device: 0x%x\n", bootParams->BootDevice);
+    printf("%i regions\n", bootParams->Memory.RegionCount);
+    for (int i=0; i<bootParams->Memory.RegionCount; i++) {
+        printf("!");
+    }
+
     printf("Hello world from the kernel!\n");
     initKeyboard();
     for (;;) { asm("hlt"); };

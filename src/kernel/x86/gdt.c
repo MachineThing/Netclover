@@ -1,7 +1,7 @@
 #include <string.h>
 #include "gdt.h"
 
-extern void gdt_flush(uint32_t addr);
+extern void gdt_flush(uint64_t addr);
 extern void tss_flush();
 
 #define total_entries 6
@@ -12,7 +12,7 @@ struct tss_entry_struct tss_entry;
 
 void initGDT() {
     gdt_ptr.limit = (sizeof(struct gdt_entry_struct) * total_entries) - 1;
-    gdt_ptr.base = (uint32_t)(uintptr_t)&gdt_entries;
+    gdt_ptr.base = (uint64_t)(uintptr_t)&gdt_entries;
 
     setGDTGate(0, 0, 0, 0, 0); // Null segment
 
@@ -32,7 +32,7 @@ void initGDT() {
 
     //writeTSS(5, 0x10, 0);
 
-    gdt_flush((uint32_t)(uintptr_t)&gdt_ptr);
+    gdt_flush((uint64_t)&gdt_ptr);
     // TODO: Implement Interrupt Stack Table
     //tss_flush();
 }

@@ -7,9 +7,9 @@ extern main
 section .kinit
 kinit:
     ; Create temp GDT
-    lgdt [init_GDTDesc-0xC0000000]
+    lgdt [init_GDTDesc-0xffffffffc0000000]
     ; Setup basic paging
-    mov eax, (init_page_pml4 - 0xC0000000)   ; Location in phys memory
+    mov eax, (init_page_pml4 - 0xffffffffc0000000)   ; Location in phys memory
     mov cr3, eax
 
     ; Enable PAE
@@ -20,7 +20,7 @@ kinit:
     ; Set LM Bit
     mov ecx, 0xC0000080          ; 0xC0000080 is the EFER MSR.
     rdmsr
-    or eax, 1 << 8               ; Set the LM-bit which is the 9th bit (bit 8).
+    or eax, (1 << 8)             ; Set the LM-bit which is the 9th bit (bit 8).
     wrmsr
 
     ; Enable paging
@@ -29,17 +29,20 @@ kinit:
     mov cr0, ebx
 
     ; Initialize stack (Save some values as well)
-    pop eax
-    pop ebx
-    pop ecx
-    pop edx
-    mov esp, stack_top
-    push edx
-    push ecx
-    push ebx
-    push eax
+    ;pop eax
+    ;pop ebx
+    ;pop ecx
+    ;pop edx
+    mov esp, stack_top-0xffffffffc0000000
+    ;push edx
+    ;push ecx
+    ;push ebx
+    ;push eax
+    jmp 0x18:reloc ; Go to 64 bit mode and jump to kernel address
 
-    jmp 0x18:main
+bits 64
+reloc:
+    jmp main
 
 section .bss
 stack_top:
@@ -49,24 +52,26 @@ stack_bottom:
 section .data
 align 32
 init_page_pml4:
-dq ((init_page_dir_tab-$$-0xC0000000) | 1) + $$     ; 0x0
-times 512-1 dq 0
+dq ((init_page_dir_tab-$$-0xffffffffc0000000) | 1) + $$     ; 0x0
+times 512-2 dq 0
+dq ((kern_page_dir_tab-$$-0xffffffffc0000000) | 1) + $$     ; 0xffffffffc0000000
 
 init_page_dir_tab:
 ; Note: We subtract $$ from the directory pointer
 ; and add $$ to it later so it can be logical or'ed
 ; Not doing the above will result in the assembler complaining
-dq ((init_page_dir-$$-0xC0000000) | 1) + $$         ; 0x0
-dq 0
-dq 0
-dq ((init_page_dir-$$-0xC0000000) | 1) + $$         ; 0xC0000000
-times 512-4 dq 0
+dq ((init_page_dir-$$-0xffffffffc0000000) | 1) + $$         ; 0x0
+times 512-1 dq 0
+
+kern_page_dir_tab:
+times 512-1 dq 0
+dq ((init_page_dir-$$-0xffffffffc0000000) | 1) + $$         ; 0xffffffffc0000000
 
 align 4096
 init_page_dir:
 %assign i 0
 %rep 512
-    dq (i << 21) | 10000011b ; 0xC0000000
+    dq (i << 21) | 10000011b ; 0xffffffffc0000000
     %assign i i+1
 %endrep
 
@@ -106,5 +111,5 @@ init_GDT:
             db 0                                                        ; Base high
 
 init_GDTDesc:
-            dw (init_GDTDesc-0xC0000000) - (init_GDT-0xC0000000) - 1    ; Limit = size of GDT
-            dd (init_GDT-0xC0000000)                                    ; Address of GDT
+            dw (init_GDTDesc-0xffffffffc0000000) - (init_GDT-0xffffffffc0000000) - 1    ; Limit = size of GDT
+            dd (init_GDT-0xffffffffc0000000)                                            ; Address of GDT
